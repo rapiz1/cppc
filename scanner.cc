@@ -1,7 +1,14 @@
 #include "scanner.h"
 
+std::string Scanner::get_lexeme(TokenType type) {
+  if (type == STRING)
+    return source.substr(start + 1, current - start - 2);
+  else
+    return source.substr(start, current - start);
+}
+
 void Scanner::addToken(TokenType type) {
-  auto t = Token(type, source.substr(start, current - start), line);
+  auto t = Token(type, get_lexeme(type), line);
   tokens.push_back(t);
 }
 
@@ -47,9 +54,11 @@ void Scanner::number() {
   addToken(NUMBER);
 }
 
-void Scanner::identifier() {
+void Scanner::identifierOrKeyword() {
   while (isalnum(peek())) advance();
-  addToken(IDENTIFIER);
+  std::string lexeme = get_lexeme(INVALID);
+  TokenType t = string2keyword(lexeme);
+  addToken(t == INVALID ? IDENTIFIER : t);
 }
 
 void Scanner::scanToken() {
@@ -113,10 +122,10 @@ void Scanner::scanToken() {
     case '\t':
       break;
     default:
-      if (isdigit(peek()))
+      if (isdigit(c))
         number();
-      else if (isalpha(peek()))
-        identifier();
+      else if (isalpha(c))
+        identifierOrKeyword();
       else {
         error("Unexpected character");
       }

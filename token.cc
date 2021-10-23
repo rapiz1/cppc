@@ -9,7 +9,7 @@ std::ostream& operator<<(std::ostream& out, Token token) {
   return out;
 }
 
-TokenType string2identifier(const std::string& s) {
+TokenType string2keyword(const std::string& s) {
   const static std::map<std::string, TokenType> str2token = {
       {"and", AND},   {"class", CLASS}, {"else", ELSE},     {"false", FALSE},
       {"fun", FUN},   {"for", FOR},     {"if", IF},         {"nil", NIL},

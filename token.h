@@ -65,5 +65,5 @@ struct Token {
 };
 std::ostream& operator<<(std::ostream& out, Token token);
 
-TokenType string2identifier(const std::string& s);
+TokenType string2keyword(const std::string& s);
 #endif

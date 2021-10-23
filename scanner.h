@@ -12,6 +12,8 @@ class Scanner {
   std::string errorMessage;
   std::vector<Token> tokens;
 
+  std::string get_lexeme(TokenType type);
+
   char advance();
   char peek();
   char peekNext();
@@ -23,7 +25,7 @@ class Scanner {
 
   void string();
   void number();
-  void identifier();
+  void identifierOrKeyword();
 
   void addToken(TokenType type);
   void scanToken();

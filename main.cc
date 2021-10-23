@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 
+#include "parser.h"
 #include "scanner.h"
 
 using namespace std;
@@ -12,6 +13,17 @@ int run(const string& s) {
   Scanner scanner(s);
   auto tokens = scanner.scanTokens();
   for (auto t : tokens) cout << t << endl;
+  Parser parser;
+  auto expr = parser.parse(tokens);
+
+  PrintVisitor print;
+  print.visit(expr);
+
+  cout << " = ";
+  EvalVisitor eval;
+  eval.visit(expr);
+  print.visit(eval.getValue());
+  cout << endl;
   return 0;
 }
 
@@ -29,9 +41,11 @@ int runFile(const string& file) {
   return run(file_content);
 }
 
+void showPrompt() { cout << ">> "; }
+
 int runPrompt() {
   string line;
-  while (getline(cin, line)) {
+  while (showPrompt(), getline(cin, line)) {
     run(line);
   }
   return 0;
