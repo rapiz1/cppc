@@ -9,7 +9,17 @@ class Parser {
   Token advance();
   Token peek();
 
+  Token consume(TokenType type, std::string error);
+
   bool match(int count, ...);
+
+  bool eof() { return current == tokens.size(); };
+
+  std::vector<Stmt*> program();
+
+  Stmt* stmt();
+  PrintStmt* printStmt();
+  VarDecl* varDecl();
 
   Expr* expression();
   Expr* equality();
@@ -20,6 +30,6 @@ class Parser {
   Expr* primary();
 
  public:
-  Expr* parse(const std::vector<Token>& tokens);
+  std::vector<Stmt*> parse(const std::vector<Token>& tokens);
 };
 #endif

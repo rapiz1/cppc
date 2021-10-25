@@ -4,11 +4,21 @@
 
 #include "token.h"
 
+class StmtVisitor;
 class ExprVisitor;
 
-class Expr {
+class AstNode {
  public:
   virtual operator std::string() = 0;
+};
+
+class Stmt : public AstNode {
+ public:
+  virtual void accept(StmtVisitor* v) = 0;
+};
+
+class Expr : public AstNode {
+ public:
   virtual void accept(ExprVisitor* v) = 0;
 };
 
@@ -17,6 +27,23 @@ class Unary;
 class Literal;
 class Number;
 class String;
+
+class PrintStmt;
+class VarDecl;
+
+class StmtVisitor {
+ public:
+  virtual void visit(Stmt* st) = 0;
+  virtual void visit(PrintStmt* st) = 0;
+  virtual void visit(VarDecl* st) = 0;
+};
+
+class ExecVisitor : public StmtVisitor {
+ public:
+  void visit(Stmt* st) override;
+  void visit(PrintStmt* st) override;
+  void visit(VarDecl* st) override;
+};
 
 class ExprVisitor {
  public:
@@ -45,6 +72,33 @@ class EvalVisitor : public ExprVisitor {
   Expr* getValue() { return value; }
 };
 
+class PrintStmt : public Stmt {
+ protected:
+  Expr* expr;
+
+ public:
+  PrintStmt(Expr* expr) : expr(expr){};
+  operator std::string() override { return "print " + std::string(*expr); };
+
+  void accept(StmtVisitor* v) { v->visit(this); }
+  friend class ExecVisitor;
+};
+
+class VarDecl : public Stmt {
+ protected:
+  std::string identifier;
+  Expr* init;
+
+ public:
+  VarDecl(std::string id, Expr* init) : identifier(id), init(init){};
+  operator std::string() override {
+    return "var " + identifier + " = " + std::string(*init);
+  };
+
+  void accept(StmtVisitor* v) { v->visit(this); }
+  friend class ExecVisitor;
+};
+
 class Binary : public Expr {
  protected:
   Expr* left;
@@ -68,6 +122,7 @@ class Unary : public Expr {
  public:
   Unary(Token op, Expr* child) : op(op), child(child){};
   operator std::string();
+
   void accept(ExprVisitor* v) { v->visit(this); }
   friend class EvalVisitor;
 };

@@ -14,16 +14,11 @@ int run(const string& s) {
   auto tokens = scanner.scanTokens();
   for (auto t : tokens) cout << t << endl;
   Parser parser;
-  auto expr = parser.parse(tokens);
-
-  PrintVisitor print;
-  print.visit(expr);
-
-  cout << " = ";
-  EvalVisitor eval;
-  eval.visit(expr);
-  print.visit(eval.getValue());
-  cout << endl;
+  auto stmts = parser.parse(tokens);
+  ExecVisitor v;
+  for (auto s : stmts) {
+    v.visit(s);
+  }
   return 0;
 }
 

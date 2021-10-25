@@ -1,5 +1,7 @@
 #include "expr.h"
 
+#include <string.h>
+
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -104,3 +106,13 @@ bool String::isTruthy() { return value.size(); }
 
 const double EPS = 1e-6;
 bool Number::isTruthy() { return abs(value) < EPS; }
+
+void ExecVisitor::visit(Stmt* s) { s->accept(this); }
+void ExecVisitor::visit(PrintStmt* s) {
+  EvalVisitor v;
+  v.visit(s->expr);
+  Expr* e = v.getValue();
+
+  std::cout << std::string(*e) << std::endl;
+}
+void ExecVisitor::visit(VarDecl* s) {}

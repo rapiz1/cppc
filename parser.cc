@@ -2,9 +2,18 @@
 
 #include <cassert>
 #include <cstdarg>
+#include <iostream>
 
 Token Parser::advance() { return tokens[current++]; }
 Token Parser::peek() { return tokens[current]; }
+Token Parser::consume(TokenType type, std::string error) {
+  Token t = advance();
+  if (t.tokenType != type) {
+    std::cerr << error << std::endl;
+    exit(-1);
+  }
+  return t;
+}
 
 bool Parser::match(int count, ...) {
   if (current == tokens.size()) return false;
@@ -25,6 +34,49 @@ bool Parser::match(int count, ...) {
   va_end(args);
 
   return ret;
+}
+
+std::vector<Stmt*> Parser::program() {
+  std::vector<Stmt*> prog;
+  while (!eof()) {
+    prog.push_back(stmt());
+  }
+  return prog;
+}
+
+Stmt* Parser::stmt() {
+  Stmt* s = nullptr;
+  switch (peek().tokenType) {
+    case PRINT:
+      s = printStmt();
+      break;
+    case VAR:
+      s = varDecl();
+      break;
+  }
+  consume(SEMICOLON, "Expect `;` at the end of a statement");
+
+  assert(s);
+  return s;
+}
+
+PrintStmt* Parser::printStmt() {
+  consume(PRINT, "Expect keyword `print`");
+  PrintStmt* s = new PrintStmt(expression());
+
+  assert(s);
+  return s;
+}
+
+VarDecl* Parser::varDecl() {
+  consume(VAR, "Expect a `var` declaration");
+
+  Token id = consume(IDENTIFIER, "Expect an identifier");
+
+  VarDecl* s = new VarDecl(id.lexeme, expression());
+
+  assert(s);
+  return s;
 }
 
 Expr* Parser::expression() { return equality(); }
@@ -105,8 +157,8 @@ Expr* Parser::primary() {
   return prim;
 }
 
-Expr* Parser::parse(const std::vector<Token>& tokens) {
+std::vector<Stmt*> Parser::parse(const std::vector<Token>& tokens) {
   this->tokens = tokens;
   current = 0;
-  return expression();
+  return program();
 }
