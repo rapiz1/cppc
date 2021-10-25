@@ -4,45 +4,31 @@
 
 #include "token.h"
 
-class StmtVisitor;
-class ExprVisitor;
-
-class AstNode {
- public:
-  virtual operator std::string() = 0;
-};
-
-class Stmt : public AstNode {
- public:
-  virtual void accept(StmtVisitor* v) = 0;
-};
-
-class Expr : public AstNode {
- public:
-  virtual void accept(ExprVisitor* v) = 0;
-};
-
+class Expr;
+class Literal;
 class Binary;
 class Unary;
-class Literal;
-class Number;
-class String;
 
+class Statement;
+class Declaration;
 class PrintStmt;
+class ExprStmt;
 class VarDecl;
 
-class StmtVisitor {
+class DeclVisitor {
  public:
-  virtual void visit(Stmt* st) = 0;
+  virtual void visit(Declaration* d) = 0;
+  virtual void visit(ExprStmt* st) = 0;
   virtual void visit(PrintStmt* st) = 0;
-  virtual void visit(VarDecl* st) = 0;
+  virtual void visit(VarDecl* d) = 0;
 };
 
-class ExecVisitor : public StmtVisitor {
+class ExecVisitor : public DeclVisitor {
  public:
-  void visit(Stmt* st) override;
-  void visit(PrintStmt* st) override;
-  void visit(VarDecl* st) override;
+  virtual void visit(Declaration* d) override;
+  virtual void visit(ExprStmt* st) override;
+  virtual void visit(PrintStmt* st) override;
+  virtual void visit(VarDecl* d) override;
 };
 
 class ExprVisitor {
@@ -72,7 +58,32 @@ class EvalVisitor : public ExprVisitor {
   Expr* getValue() { return value; }
 };
 
-class PrintStmt : public Stmt {
+class Expr {
+ public:
+  virtual operator std::string() = 0;
+  virtual void accept(ExprVisitor* v) = 0;
+};
+
+class Declaration {
+ public:
+  virtual operator std::string() = 0;
+  virtual void accept(DeclVisitor* v) = 0;
+};
+
+class Statement : public Declaration {};
+
+class ExprStmt : public Statement {
+  Expr* expr;
+
+ public:
+  ExprStmt(Expr* expr) : expr(expr){};
+  operator std::string() override { return std::string(*expr); };
+
+  void accept(DeclVisitor* v) { v->visit(this); }
+  friend class ExecVisitor;
+};
+
+class PrintStmt : public Statement {
  protected:
   Expr* expr;
 
@@ -80,11 +91,11 @@ class PrintStmt : public Stmt {
   PrintStmt(Expr* expr) : expr(expr){};
   operator std::string() override { return "print " + std::string(*expr); };
 
-  void accept(StmtVisitor* v) { v->visit(this); }
+  void accept(DeclVisitor* v) { v->visit(this); }
   friend class ExecVisitor;
 };
 
-class VarDecl : public Stmt {
+class VarDecl : public Declaration {
  protected:
   std::string identifier;
   Expr* init;
@@ -95,7 +106,7 @@ class VarDecl : public Stmt {
     return "var " + identifier + " = " + std::string(*init);
   };
 
-  void accept(StmtVisitor* v) { v->visit(this); }
+  void accept(DeclVisitor* v) { v->visit(this); }
   friend class ExecVisitor;
 };
 

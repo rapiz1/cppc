@@ -4,12 +4,28 @@
 #include <cstdarg>
 #include <iostream>
 
-Token Parser::advance() { return tokens[current++]; }
-Token Parser::peek() { return tokens[current]; }
+void Parser::checkEof() {
+  if (eof()) {
+    std::cerr << "Unexpected eof\n";
+    exit(-1);
+  }
+}
+
+Token Parser::advance() {
+  checkEof();
+  return tokens[current++];
+}
+
+Token Parser::peek() {
+  checkEof();
+  return tokens[current];
+}
+
 Token Parser::consume(TokenType type, std::string error) {
   Token t = advance();
   if (t.tokenType != type) {
-    std::cerr << error << std::endl;
+    std::cerr << "line " << t.line << ": " << error << std::endl;
+    std::cerr << "\t but got char `" << t.lexeme << "`\n";
     exit(-1);
   }
   return t;
@@ -36,24 +52,22 @@ bool Parser::match(int count, ...) {
   return ret;
 }
 
-std::vector<Stmt*> Parser::program() {
-  std::vector<Stmt*> prog;
+std::vector<Declaration*> Parser::program() {
+  std::vector<Declaration*> prog;
   while (!eof()) {
-    prog.push_back(stmt());
+    prog.push_back(decl());
   }
   return prog;
 }
 
-Stmt* Parser::stmt() {
-  Stmt* s = nullptr;
-  switch (peek().tokenType) {
-    case PRINT:
-      s = printStmt();
-      break;
-    case VAR:
-      s = varDecl();
-      break;
-  }
+Declaration* Parser::decl() { return stmt(); }
+
+Statement* Parser::stmt() {
+  Statement* s = nullptr;
+  if (peek().tokenType == PRINT)
+    s = printStmt();
+  else
+    s = exprStmt();
   consume(SEMICOLON, "Expect `;` at the end of a statement");
 
   assert(s);
@@ -63,6 +77,13 @@ Stmt* Parser::stmt() {
 PrintStmt* Parser::printStmt() {
   consume(PRINT, "Expect keyword `print`");
   PrintStmt* s = new PrintStmt(expression());
+
+  assert(s);
+  return s;
+}
+
+ExprStmt* Parser::exprStmt() {
+  ExprStmt* s = new ExprStmt(expression());
 
   assert(s);
   return s;
@@ -157,7 +178,7 @@ Expr* Parser::primary() {
   return prim;
 }
 
-std::vector<Stmt*> Parser::parse(const std::vector<Token>& tokens) {
+std::vector<Declaration*> Parser::parse(const std::vector<Token>& tokens) {
   this->tokens = tokens;
   current = 0;
   return program();

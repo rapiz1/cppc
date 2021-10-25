@@ -13,12 +13,15 @@ class Parser {
 
   bool match(int count, ...);
 
+  void checkEof();
   bool eof() { return current == tokens.size(); };
 
-  std::vector<Stmt*> program();
+  std::vector<Declaration*> program();
 
-  Stmt* stmt();
+  Declaration* decl();
+  Statement* stmt();
   PrintStmt* printStmt();
+  ExprStmt* exprStmt();
   VarDecl* varDecl();
 
   Expr* expression();
@@ -30,6 +33,6 @@ class Parser {
   Expr* primary();
 
  public:
-  std::vector<Stmt*> parse(const std::vector<Token>& tokens);
+  std::vector<Declaration*> parse(const std::vector<Token>& tokens);
 };
 #endif

@@ -107,7 +107,7 @@ bool String::isTruthy() { return value.size(); }
 const double EPS = 1e-6;
 bool Number::isTruthy() { return abs(value) < EPS; }
 
-void ExecVisitor::visit(Stmt* s) { s->accept(this); }
+void ExecVisitor::visit(Declaration* s) { s->accept(this); }
 void ExecVisitor::visit(PrintStmt* s) {
   EvalVisitor v;
   v.visit(s->expr);
@@ -115,4 +115,5 @@ void ExecVisitor::visit(PrintStmt* s) {
 
   std::cout << std::string(*e) << std::endl;
 }
+void ExecVisitor::visit(ExprStmt* s) {}
 void ExecVisitor::visit(VarDecl* s) {}
