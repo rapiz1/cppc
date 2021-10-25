@@ -2,17 +2,19 @@
 #include <iostream>
 #include <string>
 
+#include "cmdargs.h"
 #include "parser.h"
 #include "scanner.h"
 
 using namespace std;
 
-const string usage = "Usage: clox [script]\n";
+CmdArgs* options;
 
 int run(const string& s) {
   Scanner scanner(s);
   auto tokens = scanner.scanTokens();
-  for (auto t : tokens) cout << t << endl;
+  if (options->getDebug())
+    for (auto t : tokens) cerr << t << endl;
   Parser parser;
   auto stmts = parser.parse(tokens);
   ExecVisitor v;
@@ -47,10 +49,8 @@ int runPrompt() {
 }
 
 int main(int argc, char** argv) {
-  if (argc > 2) {
-    cerr << usage;
-    return -1;
-  } else if (argc == 2) {
+  options = new CmdArgs(argc, argv);
+  if (options->getMode() == RunMode::FROM_FILE) {
     return runFile(string(argv[1]));
   } else {
     return runPrompt();
