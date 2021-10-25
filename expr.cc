@@ -28,11 +28,12 @@ void PrintVisitor::visit(Expr* expr) { std::cout << (string)*expr; }
 void PrintVisitor::visit(Literal* expr) { std::cout << (string)*expr; }
 void PrintVisitor::visit(Unary* expr) { std::cout << (string)*expr; }
 void PrintVisitor::visit(Binary* expr) { std::cout << (string)*expr; }
+void PrintVisitor::visit(Variable* expr) { std::cout << (string)*expr; }
 
 void EvalVisitor::visit(Expr* expr) { expr->accept(this); }
 void EvalVisitor::visit(Literal* expr) { value = expr; }
 void EvalVisitor::visit(Unary* expr) {
-  EvalVisitor v;
+  EvalVisitor v(context);
   v.visit(expr->child);
   Expr* e = v.value;
   switch (expr->op.tokenType) {
@@ -49,7 +50,7 @@ void EvalVisitor::visit(Unary* expr) {
 }
 
 void EvalVisitor::visit(Binary* expr) {
-  EvalVisitor v1, v2;
+  EvalVisitor v1(context), v2(context);
   v1.visit(expr->left);
   v2.visit(expr->right);
   Number* n1 = dynamic_cast<Number*>(v1.value);
@@ -95,6 +96,13 @@ void EvalVisitor::visit(Binary* expr) {
   }
 }
 
+void EvalVisitor::visit(Variable* expr) {
+  if (!context.count(expr->name)) {
+    std::cerr << "Cannot find var " << expr->name << " in the context\n";
+  }
+  value = context.get(expr->name);
+}
+
 Number::Number(Token token) {
   std::stringstream ss(token.lexeme);
   ss >> value;
@@ -109,11 +117,16 @@ bool Number::isTruthy() { return abs(value) < EPS; }
 
 void ExecVisitor::visit(Declaration* s) { s->accept(this); }
 void ExecVisitor::visit(PrintStmt* s) {
-  EvalVisitor v;
+  EvalVisitor v(context);
   v.visit(s->expr);
   Expr* e = v.getValue();
 
   std::cout << std::string(*e) << std::endl;
 }
 void ExecVisitor::visit(ExprStmt* s) {}
-void ExecVisitor::visit(VarDecl* s) {}
+void ExecVisitor::visit(VarDecl* s) {
+  EvalVisitor v(context);
+  v.visit(s->init);
+  assert(v.getValue() != nullptr);
+  context.set(s->identifier, v.getValue());
+}

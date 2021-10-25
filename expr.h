@@ -2,12 +2,14 @@
 #define __EXPR_H__
 #include <string>
 
+#include "context.h"
 #include "token.h"
 
 class Expr;
 class Literal;
 class Binary;
 class Unary;
+class Variable;
 
 class Statement;
 class Declaration;
@@ -24,7 +26,10 @@ class DeclVisitor {
 };
 
 class ExecVisitor : public DeclVisitor {
+  ExecContext context;
+
  public:
+  ExecVisitor(ExecContext context) : context(context){};
   virtual void visit(Declaration* d) override;
   virtual void visit(ExprStmt* st) override;
   virtual void visit(PrintStmt* st) override;
@@ -37,6 +42,7 @@ class ExprVisitor {
   virtual void visit(Literal* expr) = 0;
   virtual void visit(Binary* expr) = 0;
   virtual void visit(Unary* expr) = 0;
+  virtual void visit(Variable* expr) = 0;
 };
 
 class PrintVisitor : public ExprVisitor {
@@ -45,16 +51,20 @@ class PrintVisitor : public ExprVisitor {
   void visit(Literal* expr);
   void visit(Binary* expr);
   void visit(Unary* expr);
+  void visit(Variable* expr);
 };
 
 class EvalVisitor : public ExprVisitor {
+  ExecContext context;
   Expr* value = nullptr;
 
  public:
+  EvalVisitor(ExecContext context) : context(context){};
   void visit(Expr* expr);
   void visit(Literal* expr);
   void visit(Binary* expr);
   void visit(Unary* expr);
+  void visit(Variable* expr);
   Expr* getValue() { return value; }
 };
 
@@ -185,6 +195,19 @@ class Boolean : public Literal {
   bool isTruthy() { return value; }
 
   void accept(ExprVisitor* v) { v->visit(this); }
+  friend class EvalVisitor;
+};
+class Variable : public Expr {
+ protected:
+  std::string name;
+
+ public:
+  Variable(std::string name) : name(name){};
+  Variable(Token token) { name = token.lexeme; };
+
+  operator std::string() { return name; };
+
+  void accept(ExprVisitor* v) { v->visit(this); };
   friend class EvalVisitor;
 };
 #endif

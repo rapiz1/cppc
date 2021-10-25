@@ -60,7 +60,20 @@ std::vector<Declaration*> Parser::program() {
   return prog;
 }
 
-Declaration* Parser::decl() { return stmt(); }
+Declaration* Parser::decl() {
+  Declaration* d = nullptr;
+  switch (peek().tokenType) {
+    case VAR:
+      d = varDecl();
+      break;
+
+    default:
+      d = stmt();
+      break;
+  }
+  assert(d);
+  return d;
+}
 
 Statement* Parser::stmt() {
   Statement* s = nullptr;
@@ -94,7 +107,14 @@ VarDecl* Parser::varDecl() {
 
   Token id = consume(IDENTIFIER, "Expect an identifier");
 
-  VarDecl* s = new VarDecl(id.lexeme, expression());
+  Expr* init = nullptr;
+  if (peek().tokenType == EQUAL) {
+    advance();
+    init = expression();
+  }
+
+  VarDecl* s = new VarDecl(id.lexeme, init);
+  consume(SEMICOLON, "Expect a `;` at the end of a declaration");
 
   assert(s);
   return s;
@@ -171,7 +191,15 @@ Expr* Parser::primary() {
     case LEFT_PAREN:
       advance();
       prim = expression();
-      assert(advance().tokenType == RIGHT_PAREN);
+      consume(RIGHT_PAREN, "Expect `)`");
+      break;
+    case IDENTIFIER:
+      prim = new Variable(advance());
+      break;
+    default:
+      std::cerr << "line " << peek().line << ": Unexpected lexeme "
+                << peek().lexeme << std::endl;
+      exit(-1);
       break;
   }
   assert(prim != nullptr);
