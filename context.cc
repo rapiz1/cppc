@@ -5,20 +5,46 @@
 #include "cmdargs.h"
 using std::string;
 
-bool ExecContext::count(string name) { return rec->count(name); }
+bool ExecContext::localCount(string name) { return rec->count(name); }
+bool ExecContext::count(string name) {
+  if (localCount(name))
+    return true;
+  else if (parent)
+    return parent->count(name);
+  return false;
+}
+
 void ExecContext::define(string name, Expr* expr) {
-  if (count(name) && options->getAllowRedefine()) {
+  if (localCount(name) && options->getAllowRedefine()) {
     std::cerr << "redefine " << name << std::endl;
     exit(-1);
   } else
-    set(name, expr);
+    setOrCreateVar(name, expr);
 }
-void ExecContext::set(string name, Expr* expr) { (*rec)[name] = expr; }
-Expr* ExecContext::get(string name) {
-  if (!count(name)) {
-    std::cerr << "get undefined variable " << name << std::endl;
+
+void ExecContext::setOrCreateVar(string name, Expr* expr) {
+  (*rec)[name] = expr;
+}
+
+void ExecContext::set(string name, Expr* expr) {
+  if (localCount(name))
+    setOrCreateVar(name, expr);
+  else if (parent && parent->count(name))
+    parent->set(name, expr);
+  else {
+    std::cerr << "Cannot set undefined variable " << name << std::endl;
     exit(-1);
-    return nullptr;
-  } else
+  }
+}
+
+Expr* ExecContext::get(string name) {
+  if (localCount(name))
     return (*rec)[name];
+  else if (parent) {
+    return parent->get(name);
+  } else {
+    std::cerr << "Cannot get undefined variable " << name << std::endl;
+    exit(-1);
+  }
+  return nullptr;
 }

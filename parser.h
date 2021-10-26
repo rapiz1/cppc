@@ -21,6 +21,7 @@ class Parser {
   Declaration* decl();
   Statement* stmt();
   PrintStmt* printStmt();
+  BlockStmt* blockStmt();
   ExprStmt* exprStmt();
   VarDecl* varDecl();
 

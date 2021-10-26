@@ -54,7 +54,7 @@ bool Parser::match(int count, ...) {
 
 std::vector<Declaration*> Parser::program() {
   std::vector<Declaration*> prog;
-  while (!eof()) {
+  while (!eof() && !match(1, RIGHT_BRACE)) {
     prog.push_back(decl());
   }
   return prog;
@@ -77,20 +77,30 @@ Declaration* Parser::decl() {
 
 Statement* Parser::stmt() {
   Statement* s = nullptr;
-  if (peek().tokenType == PRINT)
+  if (match(1, PRINT))
     s = printStmt();
-  else
+  else if (match(1, LEFT_BRACE)) {
+    s = blockStmt();
+  } else
     s = exprStmt();
-  consume(SEMICOLON, "Expect `;` at the end of a statement");
 
   assert(s);
   return s;
+}
+
+BlockStmt* Parser::blockStmt() {
+  BlockStmt* b;
+  consume(LEFT_BRACE, "Expect `{` at the begining of a block");
+  b = new BlockStmt(program());
+  consume(RIGHT_BRACE, "Expect `}` at the end of a block");
+  return b;
 }
 
 PrintStmt* Parser::printStmt() {
   consume(PRINT, "Expect keyword `print`");
   PrintStmt* s = new PrintStmt(expression());
 
+  consume(SEMICOLON, "Expect `;` at the end of a print statement");
   assert(s);
   return s;
 }
@@ -98,6 +108,7 @@ PrintStmt* Parser::printStmt() {
 ExprStmt* Parser::exprStmt() {
   ExprStmt* s = new ExprStmt(expression());
 
+  consume(SEMICOLON, "Expect `;` at the end of a expr statement");
   assert(s);
   return s;
 }

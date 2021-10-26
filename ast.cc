@@ -143,3 +143,11 @@ void ExecVisitor::visit(VarDecl* s) {
   assert(v.getValue() != nullptr);
   context.define(s->identifier, v.getValue());
 }
+
+void ExecVisitor::visit(BlockStmt* s) {
+  ExecContext inner(&context);
+  ExecVisitor v(inner);
+  for (auto d : s->decls) {
+    v.visit(d);
+  }
+}

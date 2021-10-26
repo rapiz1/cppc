@@ -1,6 +1,7 @@
 #ifndef __EXPR_H__
 #define __EXPR_H__
 #include <string>
+#include <vector>
 
 #include "context.h"
 #include "token.h"
@@ -16,13 +17,16 @@ class Declaration;
 class PrintStmt;
 class ExprStmt;
 class VarDecl;
+class BlockStmt;
 
 class DeclVisitor {
  public:
   virtual void visit(Declaration* d) = 0;
+
   virtual void visit(ExprStmt* st) = 0;
   virtual void visit(PrintStmt* st) = 0;
   virtual void visit(VarDecl* d) = 0;
+  virtual void visit(BlockStmt* d) = 0;
 };
 
 class ExecVisitor : public DeclVisitor {
@@ -31,9 +35,11 @@ class ExecVisitor : public DeclVisitor {
  public:
   ExecVisitor(ExecContext context) : context(context){};
   virtual void visit(Declaration* d) override;
+
   virtual void visit(ExprStmt* st) override;
   virtual void visit(PrintStmt* st) override;
   virtual void visit(VarDecl* d) override;
+  virtual void visit(BlockStmt* d) override;
 };
 
 class ExprVisitor {
@@ -101,6 +107,23 @@ class PrintStmt : public Statement {
  public:
   PrintStmt(Expr* expr) : expr(expr){};
   operator std::string() override { return "print " + std::string(*expr); };
+
+  void accept(DeclVisitor* v) { v->visit(this); }
+  friend class ExecVisitor;
+};
+
+typedef std::vector<Declaration*> Program;
+class BlockStmt : public Statement {
+ protected:
+  Program decls;
+
+ public:
+  BlockStmt(Program decls) : decls(decls){};
+  operator std::string() override {
+    std::string content;
+    for (auto d : decls) content += std::string(*d);
+    return "{ " + content + " }";
+  }
 
   void accept(DeclVisitor* v) { v->visit(this); }
   friend class ExecVisitor;
