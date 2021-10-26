@@ -108,6 +108,7 @@ void EvalVisitor::visit(Binary* expr) {
 void EvalVisitor::visit(Variable* expr) {
   if (!context.count(expr->name)) {
     std::cerr << "Cannot find var " << expr->name << " in the context\n";
+    exit(-1);
   }
   value = context.get(expr->name);
 }
