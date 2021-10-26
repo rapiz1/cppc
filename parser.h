@@ -25,6 +25,7 @@ class Parser {
   VarDecl* varDecl();
 
   Expr* expression();
+  Expr* assignment();
   Expr* equality();
   Expr* comparsion();
   Expr* term();

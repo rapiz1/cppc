@@ -72,6 +72,7 @@ class Expr {
  public:
   virtual operator std::string() = 0;
   virtual void accept(ExprVisitor* v) = 0;
+  virtual bool isLval() const = 0;
 };
 
 class Declaration {
@@ -130,6 +131,7 @@ class Binary : public Expr {
   Binary(Expr* left, Token op, Expr* right)
       : left(left), op(op), right(right){};
   operator std::string();
+  bool isLval() const override { return false; }
 
   void accept(ExprVisitor* v) { v->visit(this); }
   friend class EvalVisitor;
@@ -143,6 +145,7 @@ class Unary : public Expr {
  public:
   Unary(Token op, Expr* child) : op(op), child(child){};
   operator std::string();
+  bool isLval() const override { return false; }
 
   void accept(ExprVisitor* v) { v->visit(this); }
   friend class EvalVisitor;
@@ -151,6 +154,7 @@ class Unary : public Expr {
 class Literal : public Expr {
  public:
   virtual bool isTruthy() = 0;
+  bool isLval() const override { return false; }
 };
 
 class Number : public Literal {
@@ -204,6 +208,7 @@ class Variable : public Expr {
  public:
   Variable(std::string name) : name(name){};
   Variable(Token token) { name = token.lexeme; };
+  bool isLval() const override { return true; }
 
   operator std::string() { return name; };
 

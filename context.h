@@ -12,6 +12,7 @@ class ExecContext {
  public:
   ExecContext() { rec = std::make_shared<Rec>(); }
   bool count(std::string);
+  void define(std::string, Expr* expr);
   void set(std::string, Expr* expr);
   Expr* get(std::string);
 };

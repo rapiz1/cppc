@@ -59,6 +59,8 @@ void EvalVisitor::visit(Binary* expr) {
   String* s2 = dynamic_cast<String*>(v2.value);
   Boolean* b1 = dynamic_cast<Boolean*>(v1.value);
   Boolean* b2 = dynamic_cast<Boolean*>(v2.value);
+  Variable* lv = dynamic_cast<Variable*>(expr->left);
+  Expr* rv = expr->right;
   switch (expr->op.tokenType) {
     case PLUS:
       if (n1 && n2) {
@@ -88,6 +90,13 @@ void EvalVisitor::visit(Binary* expr) {
         value = new Number(n1->value / n2->value);
       } else {
         throw TypeError();
+      }
+      break;
+    case EQUAL:
+      if (lv->isLval() && !rv->isLval()) {
+        context.set(lv->name, rv);
+      } else {
+        throw BindError();
       }
       break;
     default:
@@ -123,10 +132,13 @@ void ExecVisitor::visit(PrintStmt* s) {
 
   std::cout << std::string(*e) << std::endl;
 }
-void ExecVisitor::visit(ExprStmt* s) {}
+void ExecVisitor::visit(ExprStmt* s) {
+  EvalVisitor v(context);
+  v.visit(s->expr);
+}
 void ExecVisitor::visit(VarDecl* s) {
   EvalVisitor v(context);
   v.visit(s->init);
   assert(v.getValue() != nullptr);
-  context.set(s->identifier, v.getValue());
+  context.define(s->identifier, v.getValue());
 }

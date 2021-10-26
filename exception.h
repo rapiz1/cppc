@@ -3,4 +3,5 @@
 #include <exception>
 class RuntimeError : public std::exception {};
 class TypeError : public RuntimeError {};
+class BindError : public TypeError {};
 #endif

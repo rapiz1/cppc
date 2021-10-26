@@ -120,7 +120,22 @@ VarDecl* Parser::varDecl() {
   return s;
 }
 
-Expr* Parser::expression() { return equality(); }
+Expr* Parser::expression() { return assignment(); }
+
+Expr* Parser::assignment() {
+  Expr* e = equality();
+  if (match(1, EQUAL)) {
+    Token eq = advance();
+    Expr* v = assignment();
+    if (!e->isLval()) {
+      std::cerr << e << " is not a left value. At line " << eq.line
+                << std::endl;
+      exit(-1);
+    }
+    e = new Binary(e, eq, v);
+  }
+  return e;
+}
 
 Expr* Parser::equality() {
   Expr* left = comparsion();
