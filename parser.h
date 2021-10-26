@@ -1,6 +1,6 @@
 #ifndef __PARSER_H__
 #define __PARSER_H__
-#include "expr.h"
+#include "ast.h"
 #include "scanner.h"
 class Parser {
   std::vector<Token> tokens;
