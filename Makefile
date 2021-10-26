@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-g
+CFLAGS=-g -Wall
 SRC=$(wildcard *.cc)
 HEADERS=$(wildcard *.h)
 OBJS=$(SRC:.cc=.o)
