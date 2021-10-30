@@ -33,14 +33,15 @@ class Parser {
   Args args();               // ID (, ID)*
   RealArgs real_args();      // EXPR (, EXPR)*
 
-  Expr* expression();
-  Expr* assignment();
-  Expr* equality();
-  Expr* comparsion();
-  Expr* term();
-  Expr* factor();
-  Expr* unary();  // UNARY = CALL | (! | -) CALL
-  Expr* call();   // CALL = PRIM ('(' ARGS? ')')*
+  Expr* expression();  // ASSIGN
+  Expr* assignment();  // LVAL '=' EQUALITY | EQUALITY
+  Expr* equality();    // COMP ('==' | '!=') COMP | COMP
+  Expr* comparsion();  // TERM ('>' | '>=' | '<' | '<=') TERM | TERM
+  Expr* term();        // FACTOR (('+' | '-') FACTOR)*
+  Expr* factor();      // UNARY (('/' | '*') UNARY)*
+  Expr* unary();       // (! | - | -- | ++)* POSTFIX
+  Expr* postfix();     // CALL (++ | --)*
+  Expr* call();        // PRIM ('(' ARGS? ')')*
   Expr* primary();
 
  public:

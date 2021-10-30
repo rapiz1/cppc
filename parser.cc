@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstdarg>
 #include <iostream>
+#include <stack>
 
 void Parser::checkEof() {
   if (eof()) {
@@ -347,12 +348,27 @@ Expr* Parser::factor() {
 }
 
 Expr* Parser::unary() {
-  if (match(2, MINUS, BANG)) {
+  std::stack<Token> st;
+  while (match(4, MINUS, BANG, PLUSPLUS, MINUSMINUS)) {
     Token op = advance();
-    return new Unary(op, primary());
-  } else {
-    return call();
+    st.push(op);
   }
+  Expr* e = postfix();
+  while (!st.empty()) {
+    auto op = st.top();
+    st.pop();
+    e = new Unary(op, e);
+  }
+  return e;
+}
+
+Expr* Parser::postfix() {
+  Expr* p = call();
+  while (match(2, PLUSPLUS, MINUSMINUS)) {
+    Token op = advance();
+    p = new Postfix(op, p);
+  }
+  return p;
 }
 
 Expr* Parser::call() {

@@ -10,6 +10,7 @@ class Expr;
 class Literal;
 class Binary;
 class Unary;
+class Postfix;
 class Variable;
 class Call;
 
@@ -69,6 +70,7 @@ class ExprVisitor {
   virtual void visit(Literal* expr) = 0;
   virtual void visit(Binary* expr) = 0;
   virtual void visit(Unary* expr) = 0;
+  virtual void visit(Postfix* expr) = 0;
   virtual void visit(Variable* expr) = 0;
   virtual void visit(Call* expr) = 0;
 };
@@ -92,6 +94,7 @@ class EvalVisitor : public ExprVisitor {
   void visit(Literal* expr);
   void visit(Binary* expr);
   void visit(Unary* expr);
+  void visit(Postfix* expr);
   void visit(Variable* expr);
   void visit(Call* expr);
   Literal* getValue() { return value; }
@@ -276,6 +279,20 @@ class Unary : public Expr {
  public:
   Unary(Token op, Expr* child) : op(op), child(child){};
   operator std::string();
+  bool isLval() const override { return false; }
+
+  void accept(ExprVisitor* v) { v->visit(this); }
+  friend class EvalVisitor;
+};
+
+class Postfix : public Expr {
+ protected:
+  Token op;
+  Expr* child;
+
+ public:
+  Postfix(Token op, Expr* child) : op(op), child(child){};
+  operator std::string() { return "postfix " + op.lexeme; };
   bool isLval() const override { return false; }
 
   void accept(ExprVisitor* v) { v->visit(this); }

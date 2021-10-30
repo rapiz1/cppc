@@ -71,10 +71,10 @@ void Scanner::scanToken() {
       addToken(STAR);
       break;
     case '+':
-      addToken(PLUS);
+      addToken(match('+') ? PLUSPLUS : PLUS);
       break;
     case '-':
-      addToken(MINUS);
+      addToken(match('-') ? MINUSMINUS : MINUS);
       break;
     case '/':
       if (match('/')) {

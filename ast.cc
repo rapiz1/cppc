@@ -36,12 +36,48 @@ void EvalVisitor::visit(Unary* expr) {
   EvalVisitor v(context);
   v.visit(expr->child);
   Expr* e = v.value;
+  Number* n = dynamic_cast<Number*>(e);
+  Boolean* b = dynamic_cast<Boolean*>(e);
+  Variable* var = dynamic_cast<Variable*>(expr->child);
   switch (expr->op.tokenType) {
     case MINUS:
-      value = new Number(-dynamic_cast<Number*>(e)->value);
+      value = new Number(-n->value);
       break;
     case BANG:
-      value = new Boolean(dynamic_cast<Literal*>(e)->isTruthy());
+      value = new Boolean(!b->isTruthy());
+      break;
+    case PLUSPLUS:
+      assert(var);
+      value = new Number(n->value + 1);
+      context.set(var->name, value);
+      break;
+    case MINUSMINUS:
+      assert(var);
+      value = new Number(n->value - 1);
+      context.set(var->name, value);
+      break;
+    default:
+      throw RuntimeError();
+      break;
+  }
+}
+
+void EvalVisitor::visit(Postfix* expr) {
+  EvalVisitor v(context);
+  v.visit(expr->child);
+  Expr* e = v.value;
+  Number* n = dynamic_cast<Number*>(e);
+  Variable* var = dynamic_cast<Variable*>(expr->child);
+  assert(n);
+  assert(var);
+  switch (expr->op.tokenType) {
+    case PLUSPLUS:
+      value = new Number(n->value);
+      context.set(var->name, new Number(n->value + 1));
+      break;
+    case MINUSMINUS:
+      value = new Number(n->value);
+      context.set(var->name, new Number(n->value - 1));
       break;
     default:
       throw RuntimeError();
