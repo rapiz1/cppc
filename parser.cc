@@ -102,6 +102,9 @@ Statement* Parser::stmt() {
       advance();
       consume(SEMICOLON, "Expect `;` after break");
       break;
+    case RETURN:
+      s = returnStmt();
+      break;
     default:
       s = exprStmt();
       break;
@@ -117,6 +120,18 @@ BlockStmt* Parser::blockStmt() {
   b = new BlockStmt(program());
   consume(RIGHT_BRACE, "Expect `}` at the end of a block");
   return b;
+}
+
+ReturnStmt* Parser::returnStmt() {
+  ReturnStmt* s = nullptr;
+  Expr* e = nullptr;
+  consume(RETURN, "Expect `return`");
+  if (!match(1, SEMICOLON)) {
+    e = expression();
+  }
+  consume(SEMICOLON, "Expect `;` after return");
+  s = new ReturnStmt(e);
+  return s;
 }
 
 IfStmt* Parser::ifStmt() {

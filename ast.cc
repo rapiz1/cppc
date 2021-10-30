@@ -66,14 +66,19 @@ void EvalVisitor::visit(Call* call) {
     exit(-1);
   }
 
-  ExecContext ctx = context.wrap();
+  ExecContext ctx = context.wrapWithReason(new ReturnResult());
   ExecVisitor ev(ctx);
+
   for (size_t i = 0; i < formal.size(); i++) {
     v.visit(real[i]);
     auto value = v.getValue();
     ctx.define(formal[i].lexeme, value);
   }
   ev.visit(d->getBody());
+
+  auto r = ctx.getReason();
+  assert(r.reason == ReturnReason::RETURN || r.reason == ReturnReason::NORMAL);
+  value = r.value;
 }
 
 void EvalVisitor::visit(Binary* expr) {
@@ -187,7 +192,7 @@ bool Number::isTruthy() { return abs(value) < EPS; }
 
 ExecVisitor ExecVisitor::wrap() { return ExecVisitor(context.wrap()); }
 ExecVisitor ExecVisitor::wrapWithReason() {
-  return ExecVisitor(ExecContext(&context, new ReturnReason()));
+  return ExecVisitor(context.wrapWithReason(new ReturnResult()));
 }
 
 void ExecVisitor::visit(Declaration* s) { s->accept(this); }
@@ -221,7 +226,7 @@ void ExecVisitor::visit(BlockStmt* s) {
   ExecVisitor v = wrap();
   for (auto d : s->decls) {
     v.visit(d);
-    if (v.context.getReason() != ReturnReason::NORMAL) break;
+    if (v.context.getReason().reason != ReturnReason::NORMAL) break;
   }
 }
 
@@ -248,10 +253,18 @@ void ExecVisitor::visit(WhileStmt* s) {
     assert(l);
     if (!l->isTruthy()) break;
     v.visit(s->body);
-    if (v.context.getReason() == ReturnReason::BREAK) break;
+    auto r = v.context.getReason().reason;
+    if (r == ReturnReason::BREAK || r == ReturnReason::RETURN) break;
   }
 }
 
 void ExecVisitor::visit(BreakStmt* s) {
-  context.setReason(ReturnReason::BREAK);
+  context.setReason({ReturnReason::BREAK});
+}
+
+void ExecVisitor::visit(ReturnStmt* s) {
+  if (!s->expr) return;
+  EvalVisitor ev(context);
+  ev.visit(s->expr);
+  context.setReason({ReturnReason::RETURN, ev.getValue()});
 }

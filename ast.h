@@ -25,6 +25,7 @@ class IfStmt;
 class ForStmt;
 class WhileStmt;
 class BreakStmt;
+class ReturnStmt;
 
 class DeclVisitor {
  public:
@@ -38,6 +39,7 @@ class DeclVisitor {
   virtual void visit(IfStmt* d) = 0;
   virtual void visit(WhileStmt* d) = 0;
   virtual void visit(BreakStmt* d) = 0;
+  virtual void visit(ReturnStmt* d) = 0;
 };
 
 class ExecVisitor : public DeclVisitor {
@@ -58,6 +60,7 @@ class ExecVisitor : public DeclVisitor {
   virtual void visit(IfStmt* d) override;
   virtual void visit(WhileStmt* d) override;
   virtual void visit(BreakStmt* d) override;
+  virtual void visit(ReturnStmt* d) override;
 };
 
 class ExprVisitor {
@@ -183,6 +186,18 @@ class WhileStmt : public Statement {
 class BreakStmt : public Statement {
  public:
   operator std::string() override { return "break"; };
+
+  void accept(DeclVisitor* v) { v->visit(this); }
+  friend class ExecVisitor;
+};
+
+class ReturnStmt : public Statement {
+  Expr* expr;
+
+ public:
+  ReturnStmt(Expr* expr) : expr(expr){};
+
+  operator std::string() override { return "return"; };
 
   void accept(DeclVisitor* v) { v->visit(this); }
   friend class ExecVisitor;

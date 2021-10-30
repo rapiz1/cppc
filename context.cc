@@ -52,17 +52,17 @@ Literal* ExecContext::get(string name) {
   return nullptr;
 }
 
-ReturnReason ExecContext::getReason() {
+ReturnResult ExecContext::getReason() {
   if (reason) {
     return *reason;
   } else if (parent) {
     return parent->getReason();
   } else {
-    return ReturnReason::NORMAL;
+    return ReturnResult{ReturnReason::NORMAL, nullptr};
   }
 }
 
-void ExecContext::setReason(ReturnReason r) {
+void ExecContext::setReason(ReturnResult r) {
   if (reason) {
     *reason = r;
   } else if (parent) {

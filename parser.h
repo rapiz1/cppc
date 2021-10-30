@@ -18,19 +18,20 @@ class Parser {
 
   std::vector<Declaration*> program();
 
-  Declaration* decl();     // STMT | VAR_DECL
-  Statement* stmt();       // PRINT_STMT | BLOCK_STMT | EXPR_STMT | IF_STMT |
-                           // FOR_STMT | WHILE_STMT
-  PrintStmt* printStmt();  // PRINT EXPRESSION ;
-  BlockStmt* blockStmt();  // '{' PROGRAM '}';
-  ExprStmt* exprStmt();    // EXPRESSION ;
-  IfStmt* ifStmt();        // IF EXPRESSION STMT (ELSE STMT)?
-  BlockStmt* forStmt();    // FOR '(' VAR_DECL EXPRESSION; EXPRESSION ')'
-  WhileStmt* whileStmt();  // WHILE '(' EXPRESSION ')' STMT
-  VarDecl* varDecl();      // VAR IDENTIFIER (EQUAL EXPRESSION)? ;
-  FunDecl* funDecl();      // FUN IDENTIFIER '(' ARGS? ')' BLOCK
-  Args args();             // ID (, ID)*
-  RealArgs real_args();    // EXPR (, EXPR)*
+  Declaration* decl();       // STMT | VAR_DECL
+  Statement* stmt();         // PRINT_STMT | BLOCK_STMT | EXPR_STMT | IF_STMT |
+                             // FOR_STMT | WHILE_STMT
+  PrintStmt* printStmt();    // PRINT EXPRESSION ;
+  BlockStmt* blockStmt();    // '{' PROGRAM '}';
+  ExprStmt* exprStmt();      // EXPRESSION ;
+  IfStmt* ifStmt();          // IF EXPRESSION STMT (ELSE STMT)?
+  BlockStmt* forStmt();      // FOR '(' VAR_DECL EXPRESSION; EXPRESSION ')'
+  WhileStmt* whileStmt();    // WHILE '(' EXPRESSION ')' STMT
+  ReturnStmt* returnStmt();  // RETURN EXPR;
+  VarDecl* varDecl();        // VAR IDENTIFIER (EQUAL EXPRESSION)? ;
+  FunDecl* funDecl();        // FUN IDENTIFIER '(' ARGS? ')' BLOCK
+  Args args();               // ID (, ID)*
+  RealArgs real_args();      // EXPR (, EXPR)*
 
   Expr* expression();
   Expr* assignment();
