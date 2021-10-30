@@ -25,7 +25,7 @@ class Parser {
   BlockStmt* blockStmt();  // '{' PROGRAM '}';
   ExprStmt* exprStmt();    // EXPRESSION ;
   IfStmt* ifStmt();        // IF EXPRESSION STMT (ELSE STMT)?
-  ForStmt* forStmt();      // FOR '(' VAR_DECL EXPRESSION; EXPRESSION ')'
+  BlockStmt* forStmt();    // FOR '(' VAR_DECL EXPRESSION; EXPRESSION ')'
   WhileStmt* whileStmt();  // WHILE '(' EXPRESSION ')' STMT
   VarDecl* varDecl();      // VAR IDENTIFIER (EQUAL EXPRESSION)? ;
 

@@ -32,7 +32,6 @@ class DeclVisitor {
   virtual void visit(VarDecl* d) = 0;
   virtual void visit(BlockStmt* d) = 0;
   virtual void visit(IfStmt* d) = 0;
-  virtual void visit(ForStmt* d) = 0;
   virtual void visit(WhileStmt* d) = 0;
 };
 
@@ -48,7 +47,6 @@ class ExecVisitor : public DeclVisitor {
   virtual void visit(VarDecl* d) override;
   virtual void visit(BlockStmt* d) override;
   virtual void visit(IfStmt* d) override;
-  virtual void visit(ForStmt* d) override;
   virtual void visit(WhileStmt* d) override;
 };
 
@@ -165,23 +163,6 @@ class WhileStmt : public Statement {
   WhileStmt(Expr* condition, Statement* body)
       : condition(condition), body(body){};
   operator std::string() override { return "whilestmt"; };
-
-  void accept(DeclVisitor* v) { v->visit(this); }
-  friend class ExecVisitor;
-};
-
-class ForStmt : public Statement {
- protected:
-  Declaration* init;
-  Expr* condition;
-  Expr* inc;
-  Statement* body;
-
- public:
-  ForStmt(Declaration* init, Expr* condition, Expr* inc, Statement* body)
-      : init(init), condition(condition), inc(inc), body(body){};
-
-  operator std::string() override { return "forstmt"; };
 
   void accept(DeclVisitor* v) { v->visit(this); }
   friend class ExecVisitor;

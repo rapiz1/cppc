@@ -144,8 +144,9 @@ WhileStmt* Parser::whileStmt() {
   return w;
 }
 
-ForStmt* Parser::forStmt() {
-  ForStmt* f = nullptr;
+// Desugar `for` to `while`
+BlockStmt* Parser::forStmt() {
+  BlockStmt* f = nullptr;
   consume(FOR, "Expect `for`");
 
   consume(LEFT_PAREN, "Expect `(`");
@@ -166,8 +167,25 @@ ForStmt* Parser::forStmt() {
   Statement* b = stmt();
   assert(b);
 
-  f = new ForStmt(init, condition, inc, b);
+  /*
+  { // outer
+    init;
+    while (condition)
+    { // inner
+      b;
+      inc;
+    }
+  }
+  */
 
+  Program outer, inner;
+  inner.push_back(b);
+  inner.push_back(new ExprStmt(inc));
+
+  outer.push_back(init);
+  outer.push_back(new WhileStmt(condition, new BlockStmt(inner)));
+
+  f = new BlockStmt(outer);
   return f;
 }
 

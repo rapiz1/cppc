@@ -210,18 +210,3 @@ void ExecVisitor::visit(WhileStmt* s) {
     v.visit(s->body);
   }
 }
-
-void ExecVisitor::visit(ForStmt* s) {
-  ExecContext inner(&context);
-  ExecVisitor v(inner);
-  v.visit(s->init);
-  while (1) {
-    EvalVisitor ev(inner);
-    ev.visit(s->condition);
-    Literal* l = dynamic_cast<Literal*>(ev.getValue());
-    assert(l);
-    if (!l->isTruthy()) break;
-    v.visit(s->body);
-    ev.visit(s->inc);
-  };
-}
