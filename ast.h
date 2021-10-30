@@ -141,11 +141,11 @@ class BlockStmt : public Statement {
 
 class IfStmt : public Statement {
  protected:
-  BlockStmt *true_branch, *false_branch;
+  Statement *true_branch, *false_branch;
   Expr* condition;
 
  public:
-  IfStmt(Expr* condition, BlockStmt* true_branch, BlockStmt* false_branch)
+  IfStmt(Expr* condition, Statement* true_branch, Statement* false_branch)
       : condition(condition),
         true_branch(true_branch),
         false_branch(false_branch){};
@@ -159,10 +159,10 @@ class IfStmt : public Statement {
 class WhileStmt : public Statement {
  protected:
   Expr* condition;
-  BlockStmt* body;
+  Statement* body;
 
  public:
-  WhileStmt(Expr* condition, BlockStmt* body)
+  WhileStmt(Expr* condition, Statement* body)
       : condition(condition), body(body){};
   operator std::string() override { return "whilestmt"; };
 
@@ -175,10 +175,10 @@ class ForStmt : public Statement {
   Declaration* init;
   Expr* condition;
   Expr* inc;
-  BlockStmt* body;
+  Statement* body;
 
  public:
-  ForStmt(Declaration* init, Expr* condition, Expr* inc, BlockStmt* body)
+  ForStmt(Declaration* init, Expr* condition, Expr* inc, Statement* body)
       : init(init), condition(condition), inc(inc), body(body){};
 
   operator std::string() override { return "forstmt"; };

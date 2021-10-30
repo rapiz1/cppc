@@ -117,10 +117,10 @@ IfStmt* Parser::ifStmt() {
   Expr* e = expression();
   assert(e);
 
-  BlockStmt* tb = blockStmt();
+  Statement* tb = stmt();
   assert(tb);
 
-  BlockStmt* fb = nullptr;
+  Statement* fb = nullptr;
   if (peek().tokenType == LEFT_BRACE) fb = blockStmt();
 
   i = new IfStmt(e, tb, fb);
@@ -135,7 +135,7 @@ WhileStmt* Parser::whileStmt() {
   Expr* e = expression();
   assert(e);
 
-  BlockStmt* b = blockStmt();
+  Statement* b = stmt();
   assert(b);
 
   w = new WhileStmt(e, b);
@@ -163,7 +163,7 @@ ForStmt* Parser::forStmt() {
 
   consume(RIGHT_PAREN, "Expect `)`");
 
-  BlockStmt* b = blockStmt();
+  Statement* b = stmt();
   assert(b);
 
   f = new ForStmt(init, condition, inc, b);
