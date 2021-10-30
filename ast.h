@@ -72,7 +72,7 @@ class PrintVisitor : public ExprVisitor {
 
 class EvalVisitor : public ExprVisitor {
   ExecContext context;
-  Expr* value = nullptr;
+  Literal* value = nullptr;
 
  public:
   EvalVisitor(ExecContext context) : context(context){};
@@ -81,7 +81,7 @@ class EvalVisitor : public ExprVisitor {
   void visit(Binary* expr);
   void visit(Unary* expr);
   void visit(Variable* expr);
-  Expr* getValue() { return value; }
+  Literal* getValue() { return value; }
 };
 
 class Expr {

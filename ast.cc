@@ -131,7 +131,8 @@ void EvalVisitor::visit(Variable* expr) {
     std::cerr << "Cannot find var " << expr->name << " in the context\n";
     exit(-1);
   }
-  value = context.get(expr->name);
+  value = dynamic_cast<Literal*>(context.get(expr->name));
+  assert(value);
 }
 
 Number::Number(Token token) {
