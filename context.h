@@ -16,10 +16,7 @@ class ExecContext {
   void setOrCreateVar(std::string, Expr* expr);
 
  public:
-  ExecContext() : parent(nullptr), reason(nullptr) {
-    rec = std::make_shared<Rec>();
-  }
-  ExecContext(ExecContext* parent, ReturnReason* reason = nullptr)
+  ExecContext(ExecContext* parent = nullptr, ReturnReason* reason = nullptr)
       : parent(parent), reason(reason) {
     rec = std::make_shared<Rec>();
   }
