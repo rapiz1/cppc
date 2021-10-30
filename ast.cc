@@ -158,6 +158,7 @@ bool String::isTruthy() { return value.size(); }
 const double EPS = 1e-6;
 bool Number::isTruthy() { return abs(value) < EPS; }
 
+ExecVisitor ExecVisitor::wrap() { return ExecVisitor(ExecContext(&context)); }
 void ExecVisitor::visit(Declaration* s) { s->accept(this); }
 void ExecVisitor::visit(PrintStmt* s) {
   EvalVisitor v(context);
@@ -178,20 +179,19 @@ void ExecVisitor::visit(VarDecl* s) {
 }
 
 void ExecVisitor::visit(BlockStmt* s) {
-  ExecContext inner(&context);
-  ExecVisitor v(inner);
+  ExecVisitor v = wrap();
   for (auto d : s->decls) {
     v.visit(d);
   }
 }
 
 void ExecVisitor::visit(IfStmt* s) {
-  ExecContext inner(&context);
-  ExecVisitor v(inner);
-  EvalVisitor ev(inner);
+  EvalVisitor ev(context);
   ev.visit(s->condition);
-  Literal* l = dynamic_cast<Literal*>(ev.getValue());
+  Literal* l = ev.getValue();
   assert(l);
+
+  ExecVisitor v = wrap();
   if (l->isTruthy()) {
     v.visit(s->true_branch);
   } else if (s->false_branch) {
@@ -204,7 +204,7 @@ void ExecVisitor::visit(WhileStmt* s) {
   while (1) {
     EvalVisitor ev(context);
     ev.visit(s->condition);
-    Literal* l = dynamic_cast<Literal*>(ev.getValue());
+    Literal* l = ev.getValue();
     assert(l);
     if (!l->isTruthy()) break;
     v.visit(s->body);

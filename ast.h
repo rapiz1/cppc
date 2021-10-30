@@ -40,6 +40,8 @@ class ExecVisitor : public DeclVisitor {
 
  public:
   ExecVisitor(ExecContext context) : context(context){};
+  // Return a ExecVisitor with an inner block scopping
+  ExecVisitor wrap();
   virtual void visit(Declaration* d) override;
 
   virtual void visit(ExprStmt* st) override;
