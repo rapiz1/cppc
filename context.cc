@@ -51,3 +51,24 @@ Expr* ExecContext::get(string name) {
   }
   return nullptr;
 }
+
+ReturnReason ExecContext::getReason() {
+  if (reason) {
+    return *reason;
+  } else if (parent) {
+    return parent->getReason();
+  } else {
+    return ReturnReason::NORMAL;
+  }
+}
+
+void ExecContext::setReason(ReturnReason r) {
+  if (reason) {
+    *reason = r;
+  } else if (parent) {
+    parent->setReason(r);
+  } else {
+    std::cerr << "Return in an invalid context";
+    exit(-1);
+  }
+}

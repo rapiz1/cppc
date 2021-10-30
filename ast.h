@@ -22,6 +22,7 @@ class BlockStmt;
 class IfStmt;
 class ForStmt;
 class WhileStmt;
+class BreakStmt;
 
 class DeclVisitor {
  public:
@@ -33,6 +34,7 @@ class DeclVisitor {
   virtual void visit(BlockStmt* d) = 0;
   virtual void visit(IfStmt* d) = 0;
   virtual void visit(WhileStmt* d) = 0;
+  virtual void visit(BreakStmt* d) = 0;
 };
 
 class ExecVisitor : public DeclVisitor {
@@ -42,6 +44,7 @@ class ExecVisitor : public DeclVisitor {
   ExecVisitor(ExecContext context) : context(context){};
   // Return a ExecVisitor with an inner block scopping
   ExecVisitor wrap();
+  ExecVisitor wrapWithReason();
   virtual void visit(Declaration* d) override;
 
   virtual void visit(ExprStmt* st) override;
@@ -50,6 +53,7 @@ class ExecVisitor : public DeclVisitor {
   virtual void visit(BlockStmt* d) override;
   virtual void visit(IfStmt* d) override;
   virtual void visit(WhileStmt* d) override;
+  virtual void visit(BreakStmt* d) override;
 };
 
 class ExprVisitor {
@@ -165,6 +169,14 @@ class WhileStmt : public Statement {
   WhileStmt(Expr* condition, Statement* body)
       : condition(condition), body(body){};
   operator std::string() override { return "whilestmt"; };
+
+  void accept(DeclVisitor* v) { v->visit(this); }
+  friend class ExecVisitor;
+};
+
+class BreakStmt : public Statement {
+ public:
+  operator std::string() override { return "break"; };
 
   void accept(DeclVisitor* v) { v->visit(this); }
   friend class ExecVisitor;

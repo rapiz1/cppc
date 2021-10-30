@@ -46,6 +46,7 @@ enum TokenType {
   OR,
   PRINT,
   RETURN,
+  BREAK,
   SUPER,
   THIS,
   TRUE,

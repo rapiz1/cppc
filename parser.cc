@@ -93,6 +93,11 @@ Statement* Parser::stmt() {
     case IF:
       s = ifStmt();
       break;
+    case BREAK:
+      s = new BreakStmt();
+      advance();
+      consume(SEMICOLON, "Expect `;` after break");
+      break;
     default:
       s = exprStmt();
       break;

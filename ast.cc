@@ -159,6 +159,10 @@ const double EPS = 1e-6;
 bool Number::isTruthy() { return abs(value) < EPS; }
 
 ExecVisitor ExecVisitor::wrap() { return ExecVisitor(ExecContext(&context)); }
+ExecVisitor ExecVisitor::wrapWithReason() {
+  return ExecVisitor(ExecContext(&context, new ReturnReason()));
+}
+
 void ExecVisitor::visit(Declaration* s) { s->accept(this); }
 void ExecVisitor::visit(PrintStmt* s) {
   EvalVisitor v(context);
@@ -182,6 +186,7 @@ void ExecVisitor::visit(BlockStmt* s) {
   ExecVisitor v = wrap();
   for (auto d : s->decls) {
     v.visit(d);
+    if (v.context.getReason() != ReturnReason::NORMAL) break;
   }
 }
 
@@ -200,13 +205,18 @@ void ExecVisitor::visit(IfStmt* s) {
 }
 
 void ExecVisitor::visit(WhileStmt* s) {
-  ExecVisitor v(context);
+  ExecVisitor v = wrapWithReason();
+  EvalVisitor ev(context);
   while (1) {
-    EvalVisitor ev(context);
     ev.visit(s->condition);
     Literal* l = ev.getValue();
     assert(l);
     if (!l->isTruthy()) break;
     v.visit(s->body);
+    if (v.context.getReason() == ReturnReason::BREAK) break;
   }
+}
+
+void ExecVisitor::visit(BreakStmt* s) {
+  context.setReason(ReturnReason::BREAK);
 }
