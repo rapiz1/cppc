@@ -13,6 +13,6 @@ Lox Interpreter in C++ (under development)
 - [ ] no continue! i'm lazy
 - [x] break
 - [x] function
-- [ ] return
+- [x] return (can run gcd now!)
 - [ ] error recover
 - [ ] no local function or closure! i don't like it
