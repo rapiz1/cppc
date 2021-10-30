@@ -244,6 +244,18 @@ Args Parser::args() {
 
   return args;
 }
+RealArgs Parser::real_args() {
+  // FIXME:
+  RealArgs args;
+
+  args.push_back(expression());
+  while (match(1, COMMA)) {
+    advance();
+    args.push_back(expression());
+  }
+
+  return args;
+}
 
 FunDecl* Parser::funDecl() {
   consume(FUNCTION, "Expect a `function` declaration");
@@ -324,8 +336,22 @@ Expr* Parser::unary() {
     Token op = advance();
     return new Unary(op, primary());
   } else {
-    return primary();
+    return call();
   }
+}
+
+Expr* Parser::call() {
+  Expr* e = primary();
+  while (match(1, LEFT_PAREN)) {
+    advance();
+    RealArgs a;
+    if (!match(1, RIGHT_PAREN)) {
+      a = real_args();
+    }
+    e = new Call(e, a);
+    consume(RIGHT_PAREN, "Expect `)` after the arugment list");
+  }
+  return e;
 }
 
 Expr* Parser::primary() {

@@ -31,4 +31,6 @@ class ExecContext {
   ReturnReason getReason();
 
   bool isWrapped() const { return parent; }
+
+  ExecContext wrap() { return ExecContext(this); }
 };

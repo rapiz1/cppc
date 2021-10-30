@@ -11,6 +11,7 @@ class Literal;
 class Binary;
 class Unary;
 class Variable;
+class Call;
 
 class Declaration;
 class VarDecl;
@@ -66,6 +67,7 @@ class ExprVisitor {
   virtual void visit(Binary* expr) = 0;
   virtual void visit(Unary* expr) = 0;
   virtual void visit(Variable* expr) = 0;
+  virtual void visit(Call* expr) = 0;
 };
 
 class PrintVisitor : public ExprVisitor {
@@ -88,6 +90,7 @@ class EvalVisitor : public ExprVisitor {
   void visit(Binary* expr);
   void visit(Unary* expr);
   void visit(Variable* expr);
+  void visit(Call* expr);
   Literal* getValue() { return value; }
 };
 
@@ -212,8 +215,26 @@ class FunDecl : public Declaration {
       : identifier(id), args(args), body(body){};
   operator std::string() override { return "function " + identifier; };
 
+  std::string name() const { return identifier; };
+  Args getArgs() const { return args; };
+  BlockStmt* getBody() const { return body; };
+
   void accept(DeclVisitor* v) { v->visit(this); }
   friend class ExecVisitor;
+};
+
+typedef std::vector<Expr*> RealArgs;
+class Call : public Expr {
+  Expr* callee;
+  RealArgs args;
+
+ public:
+  Call(Expr* callee, RealArgs args) : callee(callee), args(args){};
+  operator std::string() { return "callable"; };
+  bool isLval() const override { return false; }
+
+  void accept(ExprVisitor* v) { v->visit(this); }
+  friend class EvalVisitor;
 };
 
 class Binary : public Expr {

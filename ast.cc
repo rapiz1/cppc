@@ -49,6 +49,33 @@ void EvalVisitor::visit(Unary* expr) {
   }
 }
 
+void EvalVisitor::visit(Call* call) {
+  EvalVisitor v(context);
+  v.visit(call->callee);
+  Function* fun = dynamic_cast<Function*>(v.getValue());
+  if (fun == nullptr) {
+    std::cerr << "call on non-callable object";
+    exit(-1);
+  }
+  FunDecl* d = fun->fun;
+  auto formal = d->getArgs();
+  auto real = call->args;
+  if (formal.size() != real.size()) {
+    std::cerr << "call with wrong arugments, expected " << formal.size()
+              << " , got " << real.size();
+    exit(-1);
+  }
+
+  ExecContext ctx = context.wrap();
+  ExecVisitor ev(ctx);
+  for (size_t i = 0; i < formal.size(); i++) {
+    v.visit(real[i]);
+    auto value = v.getValue();
+    ctx.define(formal[i].lexeme, value);
+  }
+  ev.visit(d->getBody());
+}
+
 void EvalVisitor::visit(Binary* expr) {
   EvalVisitor v1(context), v2(context);
   v1.visit(expr->left);
@@ -158,7 +185,7 @@ bool String::isTruthy() { return value.size(); }
 const double EPS = 1e-6;
 bool Number::isTruthy() { return abs(value) < EPS; }
 
-ExecVisitor ExecVisitor::wrap() { return ExecVisitor(ExecContext(&context)); }
+ExecVisitor ExecVisitor::wrap() { return ExecVisitor(context.wrap()); }
 ExecVisitor ExecVisitor::wrapWithReason() {
   return ExecVisitor(ExecContext(&context, new ReturnReason()));
 }

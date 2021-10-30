@@ -12,7 +12,7 @@ Lox Interpreter in C++ (under development)
 - [x] branch
 - [ ] no continue! i'm lazy
 - [x] break
-- [ ] function
+- [x] function
 - [ ] return
 - [ ] error recover
 - [ ] no local function or closure! i don't like it

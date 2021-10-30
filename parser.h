@@ -30,6 +30,7 @@ class Parser {
   VarDecl* varDecl();      // VAR IDENTIFIER (EQUAL EXPRESSION)? ;
   FunDecl* funDecl();      // FUN IDENTIFIER '(' ARGS? ')' BLOCK
   Args args();             // ID (, ID)*
+  RealArgs real_args();    // EXPR (, EXPR)*
 
   Expr* expression();
   Expr* assignment();
@@ -37,7 +38,8 @@ class Parser {
   Expr* comparsion();
   Expr* term();
   Expr* factor();
-  Expr* unary();
+  Expr* unary();  // UNARY = CALL | (! | -) CALL
+  Expr* call();   // CALL = PRIM ('(' ARGS? ')')*
   Expr* primary();
 
  public:

@@ -7,7 +7,7 @@
 const std::string usage = "Usage: clox [script]\n";
 
 CmdArgs::CmdArgs(int argc, char** argv) {
-  debug = true;
+  debug = false;
   if (argc > 2) {
     std::cerr << usage;
     exit(-1);
