@@ -6,7 +6,7 @@
 #include "cmdargs.h"
 using std::string;
 
-bool ExecContext::localCount(string name) { return rec->count(name); }
+bool ExecContext::localCount(string name) { return varRec->count(name); }
 bool ExecContext::count(string name) {
   if (localCount(name))
     return true;
@@ -15,7 +15,7 @@ bool ExecContext::count(string name) {
   return false;
 }
 
-void ExecContext::define(string name, Expr* expr) {
+void ExecContext::define(string name, Literal* expr) {
   if (localCount(name) && options->getAllowRedefine()) {
     std::cerr << "redefine " << name << std::endl;
     exit(-1);
@@ -23,11 +23,11 @@ void ExecContext::define(string name, Expr* expr) {
     setOrCreateVar(name, expr);
 }
 
-void ExecContext::setOrCreateVar(string name, Expr* expr) {
-  (*rec)[name] = expr;
+void ExecContext::setOrCreateVar(string name, Literal* expr) {
+  (*varRec)[name] = expr;
 }
 
-void ExecContext::set(string name, Expr* expr) {
+void ExecContext::set(string name, Literal* expr) {
   if (localCount(name))
     setOrCreateVar(name, expr);
   else if (parent && parent->count(name))
@@ -38,9 +38,9 @@ void ExecContext::set(string name, Expr* expr) {
   }
 }
 
-Expr* ExecContext::get(string name) {
+Literal* ExecContext::get(string name) {
   if (localCount(name)) {
-    auto ret = (*rec)[name];
+    auto ret = (*varRec)[name];
     assert(ret);
     return ret;
   } else if (parent) {
