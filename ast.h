@@ -12,12 +12,16 @@ class Binary;
 class Unary;
 class Variable;
 
-class Statement;
 class Declaration;
+class VarDecl;
+
+class Statement;
 class PrintStmt;
 class ExprStmt;
-class VarDecl;
 class BlockStmt;
+class IfStmt;
+class ForStmt;
+class WhileStmt;
 
 class DeclVisitor {
  public:
@@ -27,6 +31,9 @@ class DeclVisitor {
   virtual void visit(PrintStmt* st) = 0;
   virtual void visit(VarDecl* d) = 0;
   virtual void visit(BlockStmt* d) = 0;
+  virtual void visit(IfStmt* d) = 0;
+  virtual void visit(ForStmt* d) = 0;
+  virtual void visit(WhileStmt* d) = 0;
 };
 
 class ExecVisitor : public DeclVisitor {
@@ -40,6 +47,9 @@ class ExecVisitor : public DeclVisitor {
   virtual void visit(PrintStmt* st) override;
   virtual void visit(VarDecl* d) override;
   virtual void visit(BlockStmt* d) override;
+  virtual void visit(IfStmt* d) override;
+  virtual void visit(ForStmt* d) override;
+  virtual void visit(WhileStmt* d) override;
 };
 
 class ExprVisitor {
@@ -124,6 +134,54 @@ class BlockStmt : public Statement {
     for (auto d : decls) content += std::string(*d);
     return "{ " + content + " }";
   }
+
+  void accept(DeclVisitor* v) { v->visit(this); }
+  friend class ExecVisitor;
+};
+
+class IfStmt : public Statement {
+ protected:
+  BlockStmt *true_branch, *false_branch;
+  Expr* condition;
+
+ public:
+  IfStmt(Expr* condition, BlockStmt* true_branch, BlockStmt* false_branch)
+      : condition(condition),
+        true_branch(true_branch),
+        false_branch(false_branch){};
+
+  operator std::string() override { return "ifstmt"; };
+
+  void accept(DeclVisitor* v) { v->visit(this); }
+  friend class ExecVisitor;
+};
+
+class WhileStmt : public Statement {
+ protected:
+  Expr* condition;
+  BlockStmt* body;
+
+ public:
+  WhileStmt(Expr* condition, BlockStmt* body)
+      : condition(condition), body(body){};
+  operator std::string() override { return "whilestmt"; };
+
+  void accept(DeclVisitor* v) { v->visit(this); }
+  friend class ExecVisitor;
+};
+
+class ForStmt : public Statement {
+ protected:
+  Declaration* init;
+  Expr* condition;
+  Expr* inc;
+  BlockStmt* body;
+
+ public:
+  ForStmt(Declaration* init, Expr* condition, Expr* inc, BlockStmt* body)
+      : init(init), condition(condition), inc(inc), body(body){};
+
+  operator std::string() override { return "forstmt"; };
 
   void accept(DeclVisitor* v) { v->visit(this); }
   friend class ExecVisitor;

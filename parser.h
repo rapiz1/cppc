@@ -18,12 +18,16 @@ class Parser {
 
   std::vector<Declaration*> program();
 
-  Declaration* decl();
-  Statement* stmt();
-  PrintStmt* printStmt();
-  BlockStmt* blockStmt();
-  ExprStmt* exprStmt();
-  VarDecl* varDecl();
+  Declaration* decl();     // STMT | VAR_DECL
+  Statement* stmt();       // PRINT_STMT | BLOCK_STMT | EXPR_STMT | IF_STMT |
+                           // FOR_STMT | WHILE_STMT
+  PrintStmt* printStmt();  // PRINT EXPRESSION ;
+  BlockStmt* blockStmt();  // { PROGRAM };
+  ExprStmt* exprStmt();    // EXPRESSION ;
+  IfStmt* ifStmt();        // IF EXPRESSION BLOCK
+  ForStmt* forStmt();      // FOR (VAR_DECL EXPRESSION; EXPRESSION)
+  WhileStmt* whileStmt();  // WHILE (EXPRESSION) BLOCK
+  VarDecl* varDecl();      // VAR IDENTIFIER [= EXPRESSION] ;
 
   Expr* expression();
   Expr* assignment();

@@ -60,13 +60,27 @@ void EvalVisitor::visit(Binary* expr) {
   Boolean* b1 = dynamic_cast<Boolean*>(v1.value);
   Boolean* b2 = dynamic_cast<Boolean*>(v2.value);
   Variable* lv = dynamic_cast<Variable*>(expr->left);
-  Expr* rv = expr->right;
+  Expr* rv = v2.value;
   switch (expr->op.tokenType) {
     case PLUS:
       if (n1 && n2) {
         value = new Number(n1->value + n2->value);
       } else if (s1 && s2) {
         value = new String(s1->value + s2->value);
+      } else {
+        throw TypeError();
+      }
+      break;
+    case LESS:
+      if (n1 && n2) {
+        value = new Boolean(n1->value < n2->value);
+      } else {
+        throw TypeError();
+      }
+      break;
+    case GREATER:
+      if (n1 && n2) {
+        value = new Boolean(n1->value > n2->value);
       } else {
         throw TypeError();
       }
@@ -150,4 +164,45 @@ void ExecVisitor::visit(BlockStmt* s) {
   for (auto d : s->decls) {
     v.visit(d);
   }
+}
+
+void ExecVisitor::visit(IfStmt* s) {
+  ExecContext inner(&context);
+  ExecVisitor v(inner);
+  EvalVisitor ev(inner);
+  ev.visit(s->condition);
+  Literal* l = dynamic_cast<Literal*>(ev.getValue());
+  assert(l);
+  if (l->isTruthy()) {
+    v.visit(s->true_branch);
+  } else if (s->false_branch) {
+    v.visit(s->false_branch);
+  }
+}
+
+void ExecVisitor::visit(WhileStmt* s) {
+  ExecVisitor v(context);
+  while (1) {
+    EvalVisitor ev(context);
+    ev.visit(s->condition);
+    Literal* l = dynamic_cast<Literal*>(ev.getValue());
+    assert(l);
+    if (!l->isTruthy()) break;
+    v.visit(s->body);
+  }
+}
+
+void ExecVisitor::visit(ForStmt* s) {
+  ExecContext inner(&context);
+  ExecVisitor v(inner);
+  v.visit(s->init);
+  while (1) {
+    EvalVisitor ev(inner);
+    ev.visit(s->condition);
+    Literal* l = dynamic_cast<Literal*>(ev.getValue());
+    assert(l);
+    if (!l->isTruthy()) break;
+    v.visit(s->body);
+    ev.visit(s->inc);
+  };
 }

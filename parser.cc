@@ -77,12 +77,26 @@ Declaration* Parser::decl() {
 
 Statement* Parser::stmt() {
   Statement* s = nullptr;
-  if (match(1, PRINT))
-    s = printStmt();
-  else if (match(1, LEFT_BRACE)) {
-    s = blockStmt();
-  } else
-    s = exprStmt();
+  switch (peek().tokenType) {
+    case PRINT:
+      s = printStmt();
+      break;
+    case LEFT_BRACE:
+      s = blockStmt();
+      break;
+    case FOR:
+      s = forStmt();
+      break;
+    case WHILE:
+      s = whileStmt();
+      break;
+    case IF:
+      s = ifStmt();
+      break;
+    default:
+      s = exprStmt();
+      break;
+  }
 
   assert(s);
   return s;
@@ -94,6 +108,67 @@ BlockStmt* Parser::blockStmt() {
   b = new BlockStmt(program());
   consume(RIGHT_BRACE, "Expect `}` at the end of a block");
   return b;
+}
+
+IfStmt* Parser::ifStmt() {
+  IfStmt* i = nullptr;
+  consume(IF, "Expect `if`");
+
+  Expr* e = expression();
+  assert(e);
+
+  BlockStmt* tb = blockStmt();
+  assert(tb);
+
+  BlockStmt* fb = nullptr;
+  if (peek().tokenType == LEFT_BRACE) fb = blockStmt();
+
+  i = new IfStmt(e, tb, fb);
+  assert(i);
+  return i;
+}
+
+WhileStmt* Parser::whileStmt() {
+  WhileStmt* w = nullptr;
+  consume(WHILE, "Expect `while`");
+
+  Expr* e = expression();
+  assert(e);
+
+  BlockStmt* b = blockStmt();
+  assert(b);
+
+  w = new WhileStmt(e, b);
+
+  assert(w);
+  return w;
+}
+
+ForStmt* Parser::forStmt() {
+  ForStmt* f = nullptr;
+  consume(FOR, "Expect `for`");
+
+  consume(LEFT_PAREN, "Expect `(`");
+
+  Declaration* init = decl();
+  assert(init);
+
+  Expr* condition = expression();
+  assert(condition);
+
+  consume(SEMICOLON, "Expect `;` after for condition");
+
+  Expr* inc = expression();
+  assert(inc);
+
+  consume(RIGHT_PAREN, "Expect `)`");
+
+  BlockStmt* b = blockStmt();
+  assert(b);
+
+  f = new ForStmt(init, condition, inc, b);
+
+  return f;
 }
 
 PrintStmt* Parser::printStmt() {

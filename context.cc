@@ -1,5 +1,6 @@
 #include "context.h"
 
+#include <cassert>
 #include <iostream>
 
 #include "cmdargs.h"
@@ -38,9 +39,11 @@ void ExecContext::set(string name, Expr* expr) {
 }
 
 Expr* ExecContext::get(string name) {
-  if (localCount(name))
-    return (*rec)[name];
-  else if (parent) {
+  if (localCount(name)) {
+    auto ret = (*rec)[name];
+    assert(ret);
+    return ret;
+  } else if (parent) {
     return parent->get(name);
   } else {
     std::cerr << "Cannot get undefined variable " << name << std::endl;

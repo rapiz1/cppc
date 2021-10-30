@@ -8,7 +8,8 @@ Lox Interpreter in C++ (under development)
 - [x] expr statement
 - [x] var declartion
 - [x] block scoping
-- [ ] for block
-- [ ] branch
+- [x] for, while block
+- [x] branch
+- [ ] return, break, continue
 - [ ] function
 - [ ] error recover
