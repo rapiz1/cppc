@@ -14,6 +14,7 @@ class Variable;
 
 class Declaration;
 class VarDecl;
+class FunDecl;
 
 class Statement;
 class PrintStmt;
@@ -31,6 +32,7 @@ class DeclVisitor {
   virtual void visit(ExprStmt* st) = 0;
   virtual void visit(PrintStmt* st) = 0;
   virtual void visit(VarDecl* d) = 0;
+  virtual void visit(FunDecl* d) = 0;
   virtual void visit(BlockStmt* d) = 0;
   virtual void visit(IfStmt* d) = 0;
   virtual void visit(WhileStmt* d) = 0;
@@ -50,6 +52,7 @@ class ExecVisitor : public DeclVisitor {
   virtual void visit(ExprStmt* st) override;
   virtual void visit(PrintStmt* st) override;
   virtual void visit(VarDecl* d) override;
+  virtual void visit(FunDecl* d) override;
   virtual void visit(BlockStmt* d) override;
   virtual void visit(IfStmt* d) override;
   virtual void visit(WhileStmt* d) override;
@@ -197,6 +200,22 @@ class VarDecl : public Declaration {
   friend class ExecVisitor;
 };
 
+typedef std::vector<Token> Args;
+class FunDecl : public Declaration {
+ protected:
+  std::string identifier;
+  Args args;
+  BlockStmt* body;
+
+ public:
+  FunDecl(std::string id, Args args, BlockStmt* body)
+      : identifier(id), args(args), body(body){};
+  operator std::string() override { return "function " + identifier; };
+
+  void accept(DeclVisitor* v) { v->visit(this); }
+  friend class ExecVisitor;
+};
+
 class Binary : public Expr {
  protected:
   Expr* left;
@@ -277,6 +296,21 @@ class Boolean : public Literal {
   void accept(ExprVisitor* v) { v->visit(this); }
   friend class EvalVisitor;
 };
+
+class Function : public Literal {
+ protected:
+  FunDecl* fun;
+
+ public:
+  Function(FunDecl* fun) : fun(fun){};
+  operator std::string() { return std::string(*fun); };
+
+  bool isTruthy() { return fun != nullptr; }
+
+  void accept(ExprVisitor* v) { v->visit(this); }
+  friend class EvalVisitor;
+};
+
 class Variable : public Expr {
  protected:
   std::string name;

@@ -28,6 +28,8 @@ class Parser {
   BlockStmt* forStmt();    // FOR '(' VAR_DECL EXPRESSION; EXPRESSION ')'
   WhileStmt* whileStmt();  // WHILE '(' EXPRESSION ')' STMT
   VarDecl* varDecl();      // VAR IDENTIFIER (EQUAL EXPRESSION)? ;
+  FunDecl* funDecl();      // FUN IDENTIFIER '(' ARGS? ')' BLOCK
+  Args args();             // ID (, ID)*
 
   Expr* expression();
   Expr* assignment();

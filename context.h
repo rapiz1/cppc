@@ -4,28 +4,28 @@
 #include <memory>
 #include <string>
 
-class Expr;
+class Literal;
 enum class ReturnReason { NORMAL, RETURN, BREAK, CONTINUE };
 class ExecContext {
   ExecContext* parent;
-  typedef std::map<std::string, Expr*> Rec;
-  std::shared_ptr<Rec> rec;
+  typedef std::map<std::string, Literal*> VarRec;
+  std::shared_ptr<VarRec> varRec;
   ReturnReason* reason;
 
   bool localCount(std::string);
-  void setOrCreateVar(std::string, Expr* expr);
+  void setOrCreateVar(std::string, Literal* expr);
 
  public:
   ExecContext(ExecContext* parent = nullptr, ReturnReason* reason = nullptr)
       : parent(parent), reason(reason) {
-    rec = std::make_shared<Rec>();
+    varRec = std::make_shared<VarRec>();
   }
 
   bool count(std::string);
 
-  void define(std::string, Expr* expr);
-  void set(std::string, Expr* expr);
-  Expr* get(std::string);
+  void define(std::string, Literal* expr);
+  void set(std::string, Literal* expr);
+  Literal* get(std::string);
 
   void setReason(ReturnReason r);
   ReturnReason getReason();

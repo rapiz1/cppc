@@ -67,6 +67,10 @@ Declaration* Parser::decl() {
       d = varDecl();
       break;
 
+    case FUNCTION:
+      d = funDecl();
+      break;
+
     default:
       d = stmt();
       break;
@@ -227,6 +231,35 @@ VarDecl* Parser::varDecl() {
 
   assert(s);
   return s;
+}
+
+Args Parser::args() {
+  Args args;
+
+  args.push_back(consume(IDENTIFIER, "Expect an identifier"));
+  while (match(1, COMMA)) {
+    advance();
+    args.push_back(consume(IDENTIFIER, "Expect an identifier"));
+  }
+
+  return args;
+}
+
+FunDecl* Parser::funDecl() {
+  consume(FUNCTION, "Expect a `function` declaration");
+  Token id = consume(IDENTIFIER, "Expect an identifier for function name");
+  consume(LEFT_PAREN, "Expect `(` as argument list begins");
+
+  Args a;
+  if (!match(1, RIGHT_PAREN)) {
+    a = args();
+  }
+
+  consume(RIGHT_PAREN, "Expect `)` as argument list ends");
+
+  BlockStmt* b = blockStmt();
+
+  return new FunDecl(id.lexeme, a, b);
 }
 
 Expr* Parser::expression() { return assignment(); }

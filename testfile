@@ -1,9 +1,10 @@
+function printOne() {
+  print 1;
+}
 print "loop begins!";
-for (var i = 0; i != 3; i = i + 1)
-  print i;
 for (var i = 0; i < 10; i = i + 1) {
   print i*i;
-  if (i*i > 10) {
-    print "wow big";
+  {
+    if (i*i>50) break;
   }
 }

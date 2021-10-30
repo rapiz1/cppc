@@ -60,7 +60,7 @@ void EvalVisitor::visit(Binary* expr) {
   Boolean* b1 = dynamic_cast<Boolean*>(v1.value);
   Boolean* b2 = dynamic_cast<Boolean*>(v2.value);
   Variable* lv = dynamic_cast<Variable*>(expr->left);
-  Expr* rv = v2.value;
+  Literal* rv = v2.value;
   switch (expr->op.tokenType) {
     case PLUS:
       if (n1 && n2) {
@@ -180,6 +180,14 @@ void ExecVisitor::visit(VarDecl* s) {
   v.visit(s->init);
   assert(v.getValue() != nullptr);
   context.define(s->identifier, v.getValue());
+}
+
+void ExecVisitor::visit(FunDecl* s) {
+  if (context.count(s->identifier)) {
+    std::cerr << "redefine function " << s->identifier;
+    exit(-1);
+  }
+  context.define(s->identifier, new Function(s));
 }
 
 void ExecVisitor::visit(BlockStmt* s) {
