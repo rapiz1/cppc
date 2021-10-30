@@ -1,0 +1,10 @@
+function gcd(a, b) {
+  if (b == 0) return a;
+  while (a >= b) a = a - b;
+  return gcd(b, a);
+}
+
+assert gcd(99, 121) == 11;
+assert gcd(1, 1) == 1;
+assert gcd(123, 8) == 1;
+assert gcd(21, 30) == 3;
