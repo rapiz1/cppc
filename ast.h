@@ -141,8 +141,8 @@ class BlockStmt : public Statement {
 
 class IfStmt : public Statement {
  protected:
-  Statement *true_branch, *false_branch;
   Expr* condition;
+  Statement *true_branch, *false_branch;
 
  public:
   IfStmt(Expr* condition, Statement* true_branch, Statement* false_branch)
@@ -205,8 +205,8 @@ class VarDecl : public Declaration {
 class Binary : public Expr {
  protected:
   Expr* left;
-  Expr* right;
   Token op;
+  Expr* right;
 
  public:
   Binary(Expr* left, Token op, Expr* right)

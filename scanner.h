@@ -6,7 +6,7 @@
 #include "token.h"
 class Scanner {
   const std::string &source;
-  int start, current, line;  // current is the char we're about to consume
+  size_t start, current, line;  // current is the char we're about to consume
 
   bool badbit;
   std::string errorMessage;

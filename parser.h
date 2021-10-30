@@ -4,7 +4,7 @@
 #include "scanner.h"
 class Parser {
   std::vector<Token> tokens;
-  int current;
+  size_t current;
 
   Token advance();
   Token peek();

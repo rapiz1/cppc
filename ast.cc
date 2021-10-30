@@ -99,9 +99,20 @@ void EvalVisitor::visit(Binary* expr) {
         throw BindError();
       }
       break;
+    case EQUAL_EQUAL:
+      if (n1 && n2) {
+        value = new Boolean(n1->value == n2->value);
+      } else if (b1 && b2) {
+        value = new Boolean(b1->value == b2->value);
+      } else {
+        throw TypeError();
+      }
+      break;
     case BANG_EQUAL:
       if (n1 && n2) {
         value = new Boolean(n1->value != n2->value);
+      } else if (b1 && b2) {
+        value = new Boolean(b1->value != b2->value);
       } else {
         throw TypeError();
       }
