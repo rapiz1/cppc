@@ -254,6 +254,17 @@ void ExecVisitor::visit(PrintStmt* s) {
 
   std::cout << std::string(*e) << std::endl;
 }
+void ExecVisitor::visit(AssertStmt* s) {
+  EvalVisitor v(context);
+  v.visit(s->expr);
+  Literal* e = v.getValue();
+  if (!e->isTruthy()) {
+    std::cerr
+        << "Lox builtin assert failed! The following expression is not true:\n";
+    std::cerr << std::string(*s->expr) << std::endl;
+    exit(-1);
+  }
+}
 void ExecVisitor::visit(ExprStmt* s) {
   EvalVisitor v(context);
   v.visit(s->expr);

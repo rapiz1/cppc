@@ -54,6 +54,7 @@ enum TokenType {
   TRUE,
   VAR,
   WHILE,
+  ASSERT,
 
   TEOF
 };

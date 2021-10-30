@@ -20,7 +20,8 @@ class Parser {
 
   Declaration* decl();       // STMT | VAR_DECL
   Statement* stmt();         // PRINT_STMT | BLOCK_STMT | EXPR_STMT | IF_STMT |
-                             // FOR_STMT | WHILE_STMT
+                             // FOR_STMT | WHILE_STMT | ASSERT_STMT
+  AssertStmt* assertStmt();  // ASSERT EXPR ;
   PrintStmt* printStmt();    // PRINT EXPRESSION ;
   BlockStmt* blockStmt();    // '{' PROGRAM '}';
   ExprStmt* exprStmt();      // EXPRESSION ;

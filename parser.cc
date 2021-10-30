@@ -106,6 +106,11 @@ Statement* Parser::stmt() {
     case RETURN:
       s = returnStmt();
       break;
+    case ASSERT:
+      advance();
+      s = new AssertStmt(expression());
+      consume(SEMICOLON, "Expect `;` after assert");
+      break;
     default:
       s = exprStmt();
       break;

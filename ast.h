@@ -19,6 +19,7 @@ class VarDecl;
 class FunDecl;
 
 class Statement;
+class AssertStmt;
 class PrintStmt;
 class ExprStmt;
 class BlockStmt;
@@ -33,6 +34,7 @@ class DeclVisitor {
   virtual void visit(Declaration* d) = 0;
 
   virtual void visit(ExprStmt* st) = 0;
+  virtual void visit(AssertStmt* st) = 0;
   virtual void visit(PrintStmt* st) = 0;
   virtual void visit(VarDecl* d) = 0;
   virtual void visit(FunDecl* d) = 0;
@@ -54,6 +56,7 @@ class ExecVisitor : public DeclVisitor {
   virtual void visit(Declaration* d) override;
 
   virtual void visit(ExprStmt* st) override;
+  virtual void visit(AssertStmt* st) override;
   virtual void visit(PrintStmt* st) override;
   virtual void visit(VarDecl* d) override;
   virtual void visit(FunDecl* d) override;
@@ -133,6 +136,18 @@ class PrintStmt : public Statement {
  public:
   PrintStmt(Expr* expr) : expr(expr){};
   operator std::string() override { return "print " + std::string(*expr); };
+
+  void accept(DeclVisitor* v) { v->visit(this); }
+  friend class ExecVisitor;
+};
+
+class AssertStmt : public Statement {
+ protected:
+  Expr* expr;
+
+ public:
+  AssertStmt(Expr* expr) : expr(expr){};
+  operator std::string() override { return "assert " + std::string(*expr); };
 
   void accept(DeclVisitor* v) { v->visit(this); }
   friend class ExecVisitor;
