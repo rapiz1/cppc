@@ -71,20 +71,6 @@ void EvalVisitor::visit(Binary* expr) {
         throw TypeError();
       }
       break;
-    case LESS:
-      if (n1 && n2) {
-        value = new Boolean(n1->value < n2->value);
-      } else {
-        throw TypeError();
-      }
-      break;
-    case GREATER:
-      if (n1 && n2) {
-        value = new Boolean(n1->value > n2->value);
-      } else {
-        throw TypeError();
-      }
-      break;
     case MINUS:
       if (n1 && n2) {
         value = new Number(n1->value - n2->value);
@@ -111,6 +97,27 @@ void EvalVisitor::visit(Binary* expr) {
         context.set(lv->name, rv);
       } else {
         throw BindError();
+      }
+      break;
+    case BANG_EQUAL:
+      if (n1 && n2) {
+        value = new Boolean(n1->value != n2->value);
+      } else {
+        throw TypeError();
+      }
+      break;
+    case LESS:
+      if (n1 && n2) {
+        value = new Boolean(n1->value < n2->value);
+      } else {
+        throw TypeError();
+      }
+      break;
+    case GREATER:
+      if (n1 && n2) {
+        value = new Boolean(n1->value > n2->value);
+      } else {
+        throw TypeError();
       }
       break;
     default:
