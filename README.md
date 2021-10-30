@@ -10,6 +10,9 @@ Lox Interpreter in C++ (under development)
 - [x] block scoping
 - [x] for, while block
 - [x] branch
-- [ ] return, break, continue
+- [ ] no continue! i'm lazy
+- [x] break
 - [ ] function
+- [ ] return
 - [ ] error recover
+- [ ] no local function or closure! i don't like it
