@@ -10,7 +10,6 @@ using namespace std;
 
 CmdArgs* options;
 
-ExecContext context;  // Let the repl use a single global context in one run
 int run(const string& s) {
   Scanner scanner(s);
   auto tokens = scanner.scanTokens();
@@ -18,10 +17,12 @@ int run(const string& s) {
     for (auto t : tokens) cerr << t << endl;
   Parser parser;
   auto stmts = parser.parse(tokens);
-  ExecVisitor v(context);
+  /*
+  PrintVisitor v;
   for (auto s : stmts) {
     v.visit(s);
   }
+  */
   return 0;
 }
 
