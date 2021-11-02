@@ -1,4 +1,4 @@
-function gcd(a, b) {
+function gcd(int a, int b) -> int {
   if (b == 0) return a;
   while (a >= b) a = a - b;
   return gcd(b, a);

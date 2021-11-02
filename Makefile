@@ -24,5 +24,5 @@ clean:
 	rm -rf $(OBJS) $(OBJNAME)
 
 test: $(OBJNAME)
-	@ls tests/* | xargs -I_ sh -c 'echo testing _ && ./$(OBJNAME) _'
+	@bash ./run_test
 	./$(OBJNAME) $(TESTFILE)
