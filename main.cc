@@ -17,12 +17,11 @@ int run(const string& s) {
     for (auto t : tokens) cerr << t << endl;
   Parser parser;
   auto stmts = parser.parse(tokens);
-  /*
   PrintVisitor v;
   for (auto s : stmts) {
     v.visit(s);
+    cout << endl;
   }
-  */
   return 0;
 }
 

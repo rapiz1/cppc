@@ -120,7 +120,7 @@ class ReturnStmt : public Statement {
  public:
   ReturnStmt(Expr* expr) : expr(expr){};
 
-  operator std::string() override { return "return"; };
+  operator std::string() override { return "return" + std::string(*expr); };
 
   void accept(DeclVisitor* v) override { v->visit(this); }
   friend class PrintVisitor;
@@ -177,7 +177,7 @@ class Call : public Expr {
 
  public:
   Call(Expr* callee, RealArgs args) : callee(callee), args(args){};
-  operator std::string() override { return "callable"; };
+  operator std::string() override { return "call " + std::string(*callee); };
   bool isLval() const override { return false; }
 
   void accept(ExprVisitor* v) override { v->visit(this); }
