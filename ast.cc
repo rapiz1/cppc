@@ -16,7 +16,13 @@ Binary::operator std::string() {
 
 Unary::operator std::string() { return op.lexeme + string(*child); }
 
-Number::operator std::string() {
+Integer::operator std::string() {
+  std::stringstream ss;
+  ss << value;
+  return ss.str();
+}
+
+Double::operator std::string() {
   std::stringstream ss;
   ss << value;
   return ss.str();
@@ -36,24 +42,24 @@ void EvalVisitor::visit(Unary* expr) {
   EvalVisitor v(context);
   v.visit(expr->child);
   Expr* e = v.value;
-  Number* n = dynamic_cast<Number*>(e);
+  Integer* n = dynamic_cast<Integer*>(e);
   Boolean* b = dynamic_cast<Boolean*>(e);
   Variable* var = dynamic_cast<Variable*>(expr->child);
   switch (expr->op.tokenType) {
     case MINUS:
-      value = new Number(-n->value);
+      value = new Integer(-n->value);
       break;
     case BANG:
       value = new Boolean(!b->isTruthy());
       break;
     case PLUSPLUS:
       assert(var);
-      value = new Number(n->value + 1);
+      value = new Integer(n->value + 1);
       context.set(var->name, value);
       break;
     case MINUSMINUS:
       assert(var);
-      value = new Number(n->value - 1);
+      value = new Integer(n->value - 1);
       context.set(var->name, value);
       break;
     default:
@@ -66,18 +72,18 @@ void EvalVisitor::visit(Postfix* expr) {
   EvalVisitor v(context);
   v.visit(expr->child);
   Expr* e = v.value;
-  Number* n = dynamic_cast<Number*>(e);
+  Integer* n = dynamic_cast<Integer*>(e);
   Variable* var = dynamic_cast<Variable*>(expr->child);
   assert(n);
   assert(var);
   switch (expr->op.tokenType) {
     case PLUSPLUS:
-      value = new Number(n->value);
-      context.set(var->name, new Number(n->value + 1));
+      value = new Integer(n->value);
+      context.set(var->name, new Integer(n->value + 1));
       break;
     case MINUSMINUS:
-      value = new Number(n->value);
-      context.set(var->name, new Number(n->value - 1));
+      value = new Integer(n->value);
+      context.set(var->name, new Integer(n->value - 1));
       break;
     default:
       throw RuntimeError();
@@ -108,7 +114,7 @@ void EvalVisitor::visit(Call* call) {
   for (size_t i = 0; i < formal.size(); i++) {
     v.visit(real[i]);
     auto value = v.getValue();
-    ctx.define(formal[i].lexeme, value);
+    ctx.define(formal[i].token.lexeme, value);
   }
   ev.visit(d->getBody());
 
@@ -121,8 +127,8 @@ void EvalVisitor::visit(Binary* expr) {
   EvalVisitor v1(context), v2(context);
   v1.visit(expr->left);
   v2.visit(expr->right);
-  Number* n1 = dynamic_cast<Number*>(v1.value);
-  Number* n2 = dynamic_cast<Number*>(v2.value);
+  Integer* n1 = dynamic_cast<Integer*>(v1.value);
+  Integer* n2 = dynamic_cast<Integer*>(v2.value);
   String* s1 = dynamic_cast<String*>(v1.value);
   String* s2 = dynamic_cast<String*>(v2.value);
   Boolean* b1 = dynamic_cast<Boolean*>(v1.value);
@@ -132,7 +138,7 @@ void EvalVisitor::visit(Binary* expr) {
   switch (expr->op.tokenType) {
     case PLUS:
       if (n1 && n2) {
-        value = new Number(n1->value + n2->value);
+        value = new Integer(n1->value + n2->value);
       } else if (s1 && s2) {
         value = new String(s1->value + s2->value);
       } else {
@@ -141,21 +147,21 @@ void EvalVisitor::visit(Binary* expr) {
       break;
     case MINUS:
       if (n1 && n2) {
-        value = new Number(n1->value - n2->value);
+        value = new Integer(n1->value - n2->value);
       } else {
         throw TypeError();
       }
       break;
     case STAR:
       if (n1 && n2) {
-        value = new Number(n1->value * n2->value);
+        value = new Integer(n1->value * n2->value);
       } else {
         throw TypeError();
       }
       break;
     case SLASH:
       if (n1 && n2) {
-        value = new Number(n1->value / n2->value);
+        value = new Integer(n1->value / n2->value);
       } else {
         throw TypeError();
       }
@@ -229,7 +235,12 @@ void EvalVisitor::visit(Variable* expr) {
   assert(value);
 }
 
-Number::Number(Token token) {
+Integer::Integer(Token token) {
+  std::stringstream ss(token.lexeme);
+  ss >> value;
+}
+
+Double::Double(Token token) {
   std::stringstream ss(token.lexeme);
   ss >> value;
 }
@@ -238,8 +249,12 @@ Boolean::operator std::string() { return value ? "true" : "false"; }
 
 bool String::isTruthy() { return value.size(); }
 
-const double EPS = 1e-6;
-bool Number::isTruthy() { return abs(value) < EPS; }
+bool Integer::isTruthy() { return value; }
+
+bool Double::isTruthy() {
+  static const double EPS = 1e-6;
+  return abs(value) < EPS;
+}
 
 ExecVisitor ExecVisitor::wrap() { return ExecVisitor(context.wrap()); }
 ExecVisitor ExecVisitor::wrapWithReason() {

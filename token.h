@@ -18,6 +18,8 @@ enum TokenType {
   SEMICOLON,
   SLASH,
   STAR,
+  LEFT_SQUARE,
+  RIGHT_SQUARE,
 
   // One or two character tokens.
   BANG,
@@ -30,6 +32,7 @@ enum TokenType {
   LESS_EQUAL,
   PLUSPLUS,
   MINUSMINUS,
+  RIGHT_ARROW,
 
   // Literals.
   IDENTIFIER,
@@ -53,6 +56,11 @@ enum TokenType {
   THIS,
   TRUE,
   VAR,
+  INT,
+  DOUBLE,
+  FLOAT,
+  CHAR,
+  BOOL,
   WHILE,
   ASSERT,
 

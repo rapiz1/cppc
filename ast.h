@@ -6,6 +6,12 @@
 #include "context.h"
 #include "token.h"
 
+struct Type {
+  enum class Base { VOID, INT, DOUBLE, CHAR, ARRAY, BOOL } base;
+  int arraySize;
+  bool isArray;
+};
+
 class Expr;
 class Literal;
 class Binary;
@@ -223,11 +229,13 @@ class ReturnStmt : public Statement {
 
 class VarDecl : public Declaration {
  protected:
+  Type type;
   std::string identifier;
   Expr* init;
 
  public:
-  VarDecl(std::string id, Expr* init) : identifier(id), init(init){};
+  VarDecl(Type type, std::string id, Expr* init)
+      : type(type), identifier(id), init(init){};
   operator std::string() override {
     return "var " + identifier + " = " + std::string(*init);
   };
@@ -236,15 +244,22 @@ class VarDecl : public Declaration {
   friend class ExecVisitor;
 };
 
-typedef std::vector<Token> Args;
+struct FormalArg {
+  Type type;
+  Token token;
+};
+
+typedef std::vector<FormalArg> Args;
+
 class FunDecl : public Declaration {
  protected:
   std::string identifier;
   Args args;
   BlockStmt* body;
+  Type retType;
 
  public:
-  FunDecl(std::string id, Args args, BlockStmt* body)
+  FunDecl(Type retType, std::string id, Args args, BlockStmt* body)
       : identifier(id), args(args), body(body){};
   operator std::string() override { return "function " + identifier; };
 
@@ -320,13 +335,28 @@ class Literal : public Expr {
   bool isLval() const override { return false; }
 };
 
-class Number : public Literal {
+class Integer : public Literal {
+ protected:
+  int value;
+
+ public:
+  Integer(Token token);
+  Integer(int value) : value(value){};
+  operator std::string();
+
+  bool isTruthy();
+
+  void accept(ExprVisitor* v) { v->visit(this); }
+  friend class EvalVisitor;
+};
+
+class Double : public Literal {
  protected:
   double value;
 
  public:
-  Number(Token token);
-  Number(double value) : value(value){};
+  Double(Token token);
+  Double(double value) : value(value){};
   operator std::string();
 
   bool isTruthy();

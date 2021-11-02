@@ -65,6 +65,11 @@ Declaration* Parser::decl() {
   Declaration* d = nullptr;
   switch (peek().tokenType) {
     case VAR:
+    case INT:
+    case DOUBLE:
+    case FLOAT:
+    case CHAR:
+    case BOOL:
       d = varDecl();
       break;
 
@@ -236,8 +241,40 @@ ExprStmt* Parser::exprStmt() {
   return s;
 }
 
+Type Parser::parseType() {
+  Type::Base base;
+  Token t = advance();
+  switch (t.tokenType) {
+    case INT:
+      base = Type::Base::INT;
+      break;
+    case DOUBLE:
+    case FLOAT:
+      base = Type::Base::DOUBLE;
+      break;
+    case CHAR:
+      base = Type::Base::CHAR;
+      break;
+    case BOOL:
+      base = Type::Base::BOOL;
+      break;
+    default:
+      std::cerr << "Unexpected type " << peek().lexeme << std::endl;
+      exit(-1);
+  }
+  return {base};
+}
+
 VarDecl* Parser::varDecl() {
-  consume(VAR, "Expect a `var` declaration");
+  Type type = parseType();
+
+  if (match(1, LEFT_SQUARE)) {
+    // FIXME:
+    std::cerr << "array declaration not implemented\n";
+    exit(-1);
+
+    consume(RIGHT_SQUARE, "Expect `]`");
+  }
 
   Token id = consume(IDENTIFIER, "Expect an identifier");
 
@@ -247,7 +284,7 @@ VarDecl* Parser::varDecl() {
     init = expression();
   }
 
-  VarDecl* s = new VarDecl(id.lexeme, init);
+  VarDecl* s = new VarDecl(type, id.lexeme, init);
   consume(SEMICOLON, "Expect a `;` at the end of a declaration");
 
   assert(s);
@@ -257,10 +294,10 @@ VarDecl* Parser::varDecl() {
 Args Parser::args() {
   Args args;
 
-  args.push_back(consume(IDENTIFIER, "Expect an identifier"));
+  args.push_back({parseType(), consume(IDENTIFIER, "Expect an identifier")});
   while (match(1, COMMA)) {
     advance();
-    args.push_back(consume(IDENTIFIER, "Expect an identifier"));
+    args.push_back({parseType(), consume(IDENTIFIER, "Expect an identifier")});
   }
 
   return args;
@@ -289,10 +326,15 @@ FunDecl* Parser::funDecl() {
   }
 
   consume(RIGHT_PAREN, "Expect `)` as argument list ends");
+  Type retType = {};
+  if (match(1, RIGHT_ARROW)) {
+    advance();
+    retType = parseType();
+  }
 
   BlockStmt* b = blockStmt();
 
-  return new FunDecl(id.lexeme, a, b);
+  return new FunDecl(retType, id.lexeme, a, b);
 }
 
 Expr* Parser::expression() { return assignment(); }
@@ -394,7 +436,10 @@ Expr* Parser::primary() {
   Expr* prim = nullptr;
   switch (peek().tokenType) {
     case NUMBER:
-      prim = new Number(advance());
+      if (peek().lexeme.find('.') != std::string::npos) {
+        prim = new Double(advance());
+      } else
+        prim = new Integer(advance());
       break;
     case STRING:
       prim = new String(advance());

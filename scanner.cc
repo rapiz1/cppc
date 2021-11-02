@@ -51,6 +51,14 @@ void Scanner::string() {
 
 void Scanner::number() {
   while (isdigit(peek())) advance();
+  if (peek() == '.') {
+    advance();
+    if (isdigit(peek())) {
+      while (isdigit(peek())) advance();
+    } else {
+      error("broken number expression when lexing");
+    }
+  }
   addToken(NUMBER);
 }
 
@@ -74,7 +82,7 @@ void Scanner::scanToken() {
       addToken(match('+') ? PLUSPLUS : PLUS);
       break;
     case '-':
-      addToken(match('-') ? MINUSMINUS : MINUS);
+      addToken(match('-') ? MINUSMINUS : match('>') ? RIGHT_ARROW : MINUS);
       break;
     case '/':
       if (match('/')) {
@@ -100,6 +108,12 @@ void Scanner::scanToken() {
       break;
     case ')':
       addToken(RIGHT_PAREN);
+      break;
+    case '[':
+      addToken(LEFT_SQUARE);
+      break;
+    case ']':
+      addToken(RIGHT_SQUARE);
       break;
     case '{':
       addToken(LEFT_BRACE);
