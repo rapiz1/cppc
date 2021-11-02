@@ -1,5 +1,5 @@
 CC=clang++
-CXXFLAGS=-g -Wall
+CXXFLAGS=-g -Wall -Wno-c++17-extensions
 LDFLAGS=$(shell llvm-config --cxxflags --ldflags --system-libs --libs core)
 SRC=$(wildcard *.cc)
 HEADERS=$(wildcard *.h)

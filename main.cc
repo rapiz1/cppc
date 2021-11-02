@@ -17,11 +17,14 @@ int run(const string& s) {
     for (auto t : tokens) cerr << t << endl;
   Parser parser;
   auto stmts = parser.parse(tokens);
-  PrintVisitor v;
+  Scope scope;
+  llvmWrapper l;
+  CodeGenVisitor v(scope, l);
   for (auto s : stmts) {
     v.visit(s);
     cout << endl;
   }
+  l.mod->print(llvm::errs(), nullptr);
   return 0;
 }
 

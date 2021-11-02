@@ -1,5 +1,7 @@
 #pragma once
 #include "context.h"
+#include "llvm.h"
+
 class Expr;
 class Literal;
 class Binary;
@@ -7,6 +9,8 @@ class Unary;
 class Postfix;
 class Variable;
 class Call;
+class Double;
+class Integer;
 
 class Declaration;
 class VarDecl;
@@ -39,9 +43,54 @@ class DeclVisitor {
   virtual void visit(ReturnStmt* d) = 0;
 };
 
-class PrintVisitor : public DeclVisitor {
+class ExprVisitor {
  public:
-  // Return a PrintVisitor with an inner block scopping
+  virtual void visit(Expr* expr) = 0;
+  virtual void visit(Literal* expr) = 0;
+  virtual void visit(Integer* expr) = 0;
+  virtual void visit(Double* expr) = 0;
+  virtual void visit(Binary* expr) = 0;
+  virtual void visit(Unary* expr) = 0;
+  virtual void visit(Postfix* expr) = 0;
+  virtual void visit(Variable* expr) = 0;
+  virtual void visit(Call* expr) = 0;
+};
+
+/*
+struct TypedValue {
+  Type type;
+  llvm::Value* value;
+};
+*/
+
+class CodeGenExprVisitor : public ExprVisitor {
+  Scope scope;
+  llvmWrapper l;
+  llvm::Value* value = nullptr;
+
+ public:
+  CodeGenExprVisitor(Scope scope, llvmWrapper l) : scope(scope), l(l){};
+  // CodeGenExprVisitor wrap();
+  void visit(Expr* expr) override;
+  void visit(Literal* expr) override;
+  void visit(Integer* expr) override;
+  void visit(Double* expr) override;
+  void visit(Binary* expr) override;
+  void visit(Unary* expr) override;
+  void visit(Postfix* expr) override;
+  void visit(Variable* expr) override;
+  void visit(Call* expr) override;
+  llvm::Value* getValue() { return value; }
+};
+
+class CodeGenVisitor : public DeclVisitor {
+  Scope scope;
+  llvmWrapper l;
+
+ public:
+  CodeGenVisitor(Scope scope, llvmWrapper l) : scope(scope), l(l){};
+  CodeGenVisitor wrap();
+  CodeGenVisitor wrapWithReason(ReturnResult* r);
   virtual void visit(Declaration* d) override;
 
   virtual void visit(ExprStmt* st) override;
@@ -54,40 +103,4 @@ class PrintVisitor : public DeclVisitor {
   virtual void visit(WhileStmt* d) override;
   virtual void visit(BreakStmt* d) override;
   virtual void visit(ReturnStmt* d) override;
-};
-
-class ExprVisitor {
- public:
-  virtual void visit(Expr* expr) = 0;
-  virtual void visit(Literal* expr) = 0;
-  virtual void visit(Binary* expr) = 0;
-  virtual void visit(Unary* expr) = 0;
-  virtual void visit(Postfix* expr) = 0;
-  virtual void visit(Variable* expr) = 0;
-  virtual void visit(Call* expr) = 0;
-};
-
-class PrintExprVisitor : public ExprVisitor {
- public:
-  void visit(Expr* expr);
-  void visit(Literal* expr);
-  void visit(Binary* expr);
-  void visit(Unary* expr);
-  void visit(Variable* expr);
-};
-
-class EvalVisitor : public ExprVisitor {
-  ExecContext context;
-  Literal* value = nullptr;
-
- public:
-  EvalVisitor(ExecContext context) : context(context){};
-  void visit(Expr* expr);
-  void visit(Literal* expr);
-  void visit(Binary* expr);
-  void visit(Unary* expr);
-  void visit(Postfix* expr);
-  void visit(Variable* expr);
-  void visit(Call* expr);
-  Literal* getValue() { return value; }
 };

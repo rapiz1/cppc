@@ -334,7 +334,7 @@ FunDecl* Parser::funDecl() {
 
   BlockStmt* b = blockStmt();
 
-  return new FunDecl(retType, id.lexeme, a, b);
+  return new FunDecl(id.lexeme, a, b, retType);
 }
 
 Expr* Parser::expression() { return assignment(); }

@@ -8,8 +8,8 @@
 #include "log.h"
 using std::string;
 
-bool ExecContext::localCount(string name) { return varRec->count(name); }
-bool ExecContext::count(string name) {
+bool Scope::localCount(string name) { return varRec->count(name); }
+bool Scope::count(string name) {
   if (localCount(name))
     return true;
   else if (parent)
@@ -17,37 +17,33 @@ bool ExecContext::count(string name) {
   return false;
 }
 
-void ExecContext::define(string name, Literal* expr) {
+void Scope::define(string name, Record r) {
   if (localCount(name) && options->getAllowRedefine()) {
     std::cerr << "redefine " << name << std::endl;
     exit(-1);
   } else
-    setOrCreateVar(name, expr);
+    setOrCreateVar(name, r);
 }
 
-void ExecContext::setOrCreateVar(string name, Literal* expr) {
-  (*varRec)[name] = expr;
-}
+void Scope::setOrCreateVar(string name, Record r) { (*varRec)[name] = r; }
 
-void ExecContext::set(string name, Literal* expr) {
+void Scope::set(string name, Record r) {
   if (localCount(name)) {
-    Literal* old = get(name);
-    if (Converter::equal(old, expr))
-      setOrCreateVar(name, expr);
+    if (get(name).type == r.type)
+      setOrCreateVar(name, r);
     else
       abortMsg("type mismatched");
   } else if (parent && parent->count(name))
-    parent->set(name, expr);
+    parent->set(name, r);
   else {
     std::cerr << "Cannot set undefined variable " << name << std::endl;
     exit(-1);
   }
 }
 
-Literal* ExecContext::get(string name) {
+Record Scope::get(string name) {
   if (localCount(name)) {
     auto ret = (*varRec)[name];
-    assert(ret);
     return ret;
   } else if (parent) {
     return parent->get(name);
@@ -55,10 +51,9 @@ Literal* ExecContext::get(string name) {
     std::cerr << "Cannot get undefined variable " << name << std::endl;
     exit(-1);
   }
-  return nullptr;
 }
 
-ReturnResult ExecContext::getReason() {
+ReturnResult Scope::getReason() {
   if (reason) {
     return *reason;
   } else if (parent) {
@@ -68,7 +63,7 @@ ReturnResult ExecContext::getReason() {
   }
 }
 
-void ExecContext::setReason(ReturnResult r) {
+void Scope::setReason(ReturnResult r) {
   if (reason) {
     *reason = r;
   } else if (parent) {

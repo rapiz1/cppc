@@ -1,7 +1,3 @@
-function gcd(int a, int b) -> int {
-  if (b == 0) return a;
-  while (a >= b) a = a - b;
-  return gcd(b, a);
+function lessthan(int a, int b) -> bool {
+  return a < b;
 }
-
-print gcd(99, 121);
