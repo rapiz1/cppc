@@ -5,12 +5,7 @@
 
 #include "context.h"
 #include "token.h"
-
-struct Type {
-  enum class Base { VOID, INT, DOUBLE, CHAR, ARRAY, BOOL } base;
-  int arraySize;
-  bool isArray;
-};
+#include "type.h"
 
 class Expr;
 class Literal;
@@ -34,6 +29,8 @@ class ForStmt;
 class WhileStmt;
 class BreakStmt;
 class ReturnStmt;
+
+class Converter;
 
 class DeclVisitor {
  public:
@@ -348,6 +345,8 @@ class Integer : public Literal {
 
   void accept(ExprVisitor* v) { v->visit(this); }
   friend class EvalVisitor;
+
+  friend class Converter;
 };
 
 class Double : public Literal {
@@ -363,6 +362,8 @@ class Double : public Literal {
 
   void accept(ExprVisitor* v) { v->visit(this); }
   friend class EvalVisitor;
+
+  friend class Converter;
 };
 
 class String : public Literal {
@@ -378,6 +379,8 @@ class String : public Literal {
 
   void accept(ExprVisitor* v) { v->visit(this); }
   friend class EvalVisitor;
+
+  friend class Converter;
 };
 
 class Boolean : public Literal {
@@ -393,6 +396,8 @@ class Boolean : public Literal {
 
   void accept(ExprVisitor* v) { v->visit(this); }
   friend class EvalVisitor;
+
+  friend class Converter;
 };
 
 class Function : public Literal {
@@ -407,6 +412,8 @@ class Function : public Literal {
 
   void accept(ExprVisitor* v) { v->visit(this); }
   friend class EvalVisitor;
+
+  friend class Converter;
 };
 
 class Variable : public Expr {

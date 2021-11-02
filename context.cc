@@ -4,6 +4,8 @@
 #include <iostream>
 
 #include "cmdargs.h"
+#include "converter.h"
+#include "log.h"
 using std::string;
 
 bool ExecContext::localCount(string name) { return varRec->count(name); }
@@ -28,9 +30,13 @@ void ExecContext::setOrCreateVar(string name, Literal* expr) {
 }
 
 void ExecContext::set(string name, Literal* expr) {
-  if (localCount(name))
-    setOrCreateVar(name, expr);
-  else if (parent && parent->count(name))
+  if (localCount(name)) {
+    Literal* old = get(name);
+    if (Converter::equal(old, expr))
+      setOrCreateVar(name, expr);
+    else
+      abortMsg("type mismatched");
+  } else if (parent && parent->count(name))
     parent->set(name, expr);
   else {
     std::cerr << "Cannot set undefined variable " << name << std::endl;

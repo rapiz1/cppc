@@ -7,7 +7,9 @@
 #include <iostream>
 #include <sstream>
 
+#include "converter.h"
 #include "exception.h"
+#include "log.h"
 using std::string;
 
 Binary::operator std::string() {
@@ -129,16 +131,38 @@ void EvalVisitor::visit(Binary* expr) {
   v2.visit(expr->right);
   Integer* n1 = dynamic_cast<Integer*>(v1.value);
   Integer* n2 = dynamic_cast<Integer*>(v2.value);
+  Double* d1 = dynamic_cast<Double*>(v1.value);
+  Double* d2 = dynamic_cast<Double*>(v2.value);
   String* s1 = dynamic_cast<String*>(v1.value);
   String* s2 = dynamic_cast<String*>(v2.value);
   Boolean* b1 = dynamic_cast<Boolean*>(v1.value);
   Boolean* b2 = dynamic_cast<Boolean*>(v2.value);
   Variable* lv = dynamic_cast<Variable*>(expr->left);
   Literal* rv = v2.value;
+
+  if ((d1 || d2) && !(d1 && d2)) {
+    if (!d1) {
+      if (n1) {
+        d1 = Converter::converToDouble(n1);
+        n1 = nullptr;
+      } else
+        throw TypeError();
+    }
+    if (!d2) {
+      if (n2) {
+        d2 = Converter::converToDouble(n2);
+        n2 = nullptr;
+      } else
+        throw TypeError();
+    }
+  }
+
   switch (expr->op.tokenType) {
     case PLUS:
       if (n1 && n2) {
         value = new Integer(n1->value + n2->value);
+      } else if (d1 && d2) {
+        value = new Double(d1->value + d2->value);
       } else if (s1 && s2) {
         value = new String(s1->value + s2->value);
       } else {
@@ -148,6 +172,8 @@ void EvalVisitor::visit(Binary* expr) {
     case MINUS:
       if (n1 && n2) {
         value = new Integer(n1->value - n2->value);
+      } else if (d1 && d2) {
+        value = new Double(d1->value - d2->value);
       } else {
         throw TypeError();
       }
@@ -155,6 +181,8 @@ void EvalVisitor::visit(Binary* expr) {
     case STAR:
       if (n1 && n2) {
         value = new Integer(n1->value * n2->value);
+      } else if (d1 && d2) {
+        value = new Double(d1->value * d2->value);
       } else {
         throw TypeError();
       }
@@ -162,6 +190,8 @@ void EvalVisitor::visit(Binary* expr) {
     case SLASH:
       if (n1 && n2) {
         value = new Integer(n1->value / n2->value);
+      } else if (d1 && d2) {
+        value = new Double(d1->value / d2->value);
       } else {
         throw TypeError();
       }
@@ -176,6 +206,8 @@ void EvalVisitor::visit(Binary* expr) {
     case EQUAL_EQUAL:
       if (n1 && n2) {
         value = new Boolean(n1->value == n2->value);
+      } else if (d1 && d2) {
+        value = new Boolean(d1->value == d2->value);
       } else if (b1 && b2) {
         value = new Boolean(b1->value == b2->value);
       } else {
@@ -185,6 +217,8 @@ void EvalVisitor::visit(Binary* expr) {
     case BANG_EQUAL:
       if (n1 && n2) {
         value = new Boolean(n1->value != n2->value);
+      } else if (d1 && d2) {
+        value = new Boolean(d1->value != d2->value);
       } else if (b1 && b2) {
         value = new Boolean(b1->value != b2->value);
       } else {
@@ -194,6 +228,8 @@ void EvalVisitor::visit(Binary* expr) {
     case LESS:
       if (n1 && n2) {
         value = new Boolean(n1->value < n2->value);
+      } else if (d1 && d2) {
+        value = new Boolean(d1->value < d2->value);
       } else {
         throw TypeError();
       }
@@ -201,6 +237,8 @@ void EvalVisitor::visit(Binary* expr) {
     case LESS_EQUAL:
       if (n1 && n2) {
         value = new Boolean(n1->value <= n2->value);
+      } else if (d1 && d2) {
+        value = new Boolean(d1->value <= d2->value);
       } else {
         throw TypeError();
       }
@@ -208,6 +246,8 @@ void EvalVisitor::visit(Binary* expr) {
     case GREATER:
       if (n1 && n2) {
         value = new Boolean(n1->value > n2->value);
+      } else if (d1 && d2) {
+        value = new Boolean(d1->value > d2->value);
       } else {
         throw TypeError();
       }
@@ -215,6 +255,8 @@ void EvalVisitor::visit(Binary* expr) {
     case GREATER_EQUAL:
       if (n1 && n2) {
         value = new Boolean(n1->value >= n2->value);
+      } else if (d1 && d2) {
+        value = new Boolean(d1->value >= d2->value);
       } else {
         throw TypeError();
       }
@@ -288,7 +330,15 @@ void ExecVisitor::visit(VarDecl* s) {
   EvalVisitor v(context);
   v.visit(s->init);
   assert(v.getValue() != nullptr);
-  context.define(s->identifier, v.getValue());
+  Literal* l = v.getValue();
+  if (s->type.base == Type::Base::INT) {
+    l = dynamic_cast<Integer*>(v.getValue());
+    if (!l) abortMsg("type mismatched when initialize. requires int");
+  } else if (s->type.base == Type::Base::DOUBLE) {
+    l = Converter::converToDouble(v.getValue());
+  }
+  assert(l);
+  context.define(s->identifier, l);
 }
 
 void ExecVisitor::visit(FunDecl* s) {
