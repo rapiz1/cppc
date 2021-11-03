@@ -60,6 +60,7 @@ class CodeGenExprVisitor : public ExprVisitor {
   Scope scope;
   llvmWrapper l;
   llvm::Value* value = nullptr;
+  llvm::AllocaInst* addr = nullptr;
 
  public:
   CodeGenExprVisitor(Scope scope, llvmWrapper l) : scope(scope), l(l){};
@@ -72,7 +73,16 @@ class CodeGenExprVisitor : public ExprVisitor {
   void visit(Postfix* expr) override;
   void visit(Variable* expr) override;
   void visit(Call* expr) override;
+
+  void setValue(llvm::Value* v) { value = v; }
+  void setAddr(llvm::AllocaInst* a) { addr = a; }
+  void setTuple(llvm::Value* v, llvm::AllocaInst* a = nullptr) {
+    value = v;
+    addr = a;
+  }
+
   llvm::Value* getValue() { return value; }
+  llvm::AllocaInst* getAddr() { return addr; }
 };
 
 class CodeGenVisitor : public DeclVisitor {

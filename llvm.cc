@@ -11,6 +11,8 @@ llvm::Type* llvmWrapper::getType(Type type) {
       return llvm::Type::getDoubleTy(*ctx);
       break;
     case Type::Base::BOOL:
+      return llvm::Type::getInt1Ty(*ctx);
+      break;
     case Type::Base::CHAR:
       return llvm::Type::getInt8Ty(*ctx);
       break;
@@ -20,10 +22,17 @@ llvm::Type* llvmWrapper::getType(Type type) {
   return nullptr;
 }
 
-llvm::Value* llvmWrapper::isTruthy(llvm::Value* v) {
-  if (v->getType()->isIntegerTy())
-    return builder->CreateICmpNE(
-        v, llvm::ConstantInt::get(v->getType(), llvm::APInt(32, 0)));
+llvm::Value* llvmWrapper::convertToTruthy(llvm::Value* v) {
+  auto t = v->getType();
+  int w = t->getIntegerBitWidth();
+  if (t->isIntegerTy()) {
+    if (t == llvm::Type::getInt1Ty(*ctx))
+      return v;
+    else
+      return builder->CreateICmpNE(
+          v, llvm::ConstantInt::get(llvm::IntegerType::get(*ctx, w),
+                                    llvm::APInt(w, 0, true)));
+  }
   abortMsg("can't use value as boolean");
   return nullptr;
 }
@@ -37,7 +46,7 @@ llvm::AllocaInst* llvmWrapper::createEntryBlockAlloca(llvm::Function* fun,
   return TmpB.CreateAlloca(type, 0, name.c_str());
 }
 
-llvm::Value* llvmWrapper::convertTo(llvm::Value* v, llvm::Type* t) {
+llvm::Value* llvmWrapper::implictConvert(llvm::Value* v, llvm::Type* t) {
   if (v->getType() == t) return v;
   if (t->isDoubleTy()) {
     return builder->CreateSIToFP(v, t, "todouble");
@@ -45,7 +54,7 @@ llvm::Value* llvmWrapper::convertTo(llvm::Value* v, llvm::Type* t) {
     if (!v->getType()->isIntegerTy())
       abortMsg("can't implict convert double into int");
     else
-      return builder->CreateIntCast(v, t, true, "toint32");
+      return builder->CreateIntCast(v, t, true, "toint");
   } else
     abortMsg("unimplemented implict convert");
   return nullptr;
