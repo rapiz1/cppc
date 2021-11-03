@@ -451,7 +451,7 @@ void CodeGenVisitor::visit(WhileStmt* st) {
   CodeGenExprVisitor v(scope, l);
   l.builder->SetInsertPoint(beginB);
   v.visit(st->condition);
-  l.builder->CreateCondBr(v.getValue(), bodyB, endB);
+  l.builder->CreateCondBr(l.convertToTruthy(v.getValue()), bodyB, endB);
 
   // emit the body
   auto t = scope.getTrace();
