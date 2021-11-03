@@ -309,6 +309,7 @@ void CodeGenVisitor::visit(VarDecl* st) {
   if (st->type.isArray) {
     size = llvm::Constant::getIntegerValue(l.getInt(),
                                            llvm::APInt(32, st->type.arraySize));
+    type = type->getArrayElementType();
   }
 
   llvm::AllocaInst* addr = nullptr;
