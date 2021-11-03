@@ -88,9 +88,11 @@ class CodeGenExprVisitor : public ExprVisitor {
 class CodeGenVisitor : public DeclVisitor {
   Scope scope;
   llvmWrapper l;
+  bool terminate;
 
  public:
-  CodeGenVisitor(Scope scope, llvmWrapper l) : scope(scope), l(l){};
+  CodeGenVisitor(Scope scope, llvmWrapper l)
+      : scope(scope), l(l), terminate(false){};
   CodeGenVisitor wrap();
   CodeGenVisitor wrapWithTrace(Trace* r);
   virtual void visit(Declaration* d) override;

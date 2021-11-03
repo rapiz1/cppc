@@ -101,6 +101,46 @@ void CodeGenExprVisitor::visit(Binary* expr) {
       else
         abortMsg("type mismatched");
       break;
+    case LESS_EQUAL:
+      if (hasDouble)
+        setTuple(l.builder->CreateFCmpOLE(lhs, rhs));
+      else if (hasInteger)
+        setTuple(l.builder->CreateICmpSLE(lhs, rhs));
+      else
+        abortMsg("type mismatched");
+      break;
+    case GREATER:
+      if (hasDouble)
+        setTuple(l.builder->CreateFCmpOGT(lhs, rhs));
+      else if (hasInteger)
+        setTuple(l.builder->CreateICmpSGT(lhs, rhs));
+      else
+        abortMsg("type mismatched");
+      break;
+    case GREATER_EQUAL:
+      if (hasDouble)
+        setTuple(l.builder->CreateFCmpOGE(lhs, rhs));
+      else if (hasInteger)
+        setTuple(l.builder->CreateICmpSGE(lhs, rhs));
+      else
+        abortMsg("type mismatched");
+      break;
+    case EQUAL_EQUAL:
+      if (hasDouble)
+        setTuple(l.builder->CreateFCmpOEQ(lhs, rhs));
+      else if (hasInteger)
+        setTuple(l.builder->CreateICmpEQ(lhs, rhs));
+      else
+        abortMsg("type mismatched");
+      break;
+    case BANG_EQUAL:
+      if (hasDouble)
+        setTuple(l.builder->CreateFCmpONE(lhs, rhs));
+      else if (hasInteger)
+        setTuple(l.builder->CreateICmpNE(lhs, rhs));
+      else
+        abortMsg("type mismatched");
+      break;
     case EQUAL:
       if (lv.getAddr()) {
         l.builder->CreateStore(rhs, lv.getAddr());
@@ -195,7 +235,7 @@ void CodeGenVisitor::visit(FunDecl* st) {
   llvm::BasicBlock* BB = llvm::BasicBlock::Create(*l.ctx, st->identifier, F);
   l.builder->SetInsertPoint(BB);
 
-  Trace r = {F, st, nullptr};
+  Trace r = {F, st};
   auto v = wrapWithTrace(&r);
 
   // Set names for all arguments.
@@ -211,7 +251,8 @@ void CodeGenVisitor::visit(FunDecl* st) {
   }
 
   v.visit(st->body);
-  if (llvm::verifyFunction(*F, &llvm::errs())) abortMsg("verify error");
+  if (llvm::verifyFunction(*F, &llvm::errs()))
+    ;  // abortMsg("verify error");
   // F->eraseFromParent();
 }
 void CodeGenVisitor::visit(BlockStmt* st) {
@@ -234,26 +275,25 @@ void CodeGenVisitor::visit(IfStmt* st) {
   llvm::BasicBlock* mergeBB = llvm::BasicBlock::Create(*l.ctx, "ifcont");
 
   l.builder->CreateCondBr(condV, thenBB, elseBB);
+
   // Emit then value.
-  l.builder->SetInsertPoint(thenBB);
-
   auto v1 = wrap();
+  l.builder->SetInsertPoint(thenBB);
   v1.visit(st->true_branch);
-
-  l.builder->CreateBr(mergeBB);
-  // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
-  thenBB = l.builder->GetInsertBlock();
+  if (!v1.terminate) l.builder->CreateBr(mergeBB);
 
   // Emit else block.
   fun->getBasicBlockList().push_back(elseBB);
   l.builder->SetInsertPoint(elseBB);
 
+  bool else_terminate = false;
   if (st->false_branch) {
     auto v2 = wrap();
     v2.visit(st->false_branch);
+    else_terminate = v2.terminate;
   }
+  if (!else_terminate) l.builder->CreateBr(mergeBB);
 
-  l.builder->CreateBr(mergeBB);
   // codegen of 'Else' can change the current block, update ElseBB for the PHI.
   elseBB = l.builder->GetInsertBlock();
 
@@ -261,12 +301,50 @@ void CodeGenVisitor::visit(IfStmt* st) {
   fun->getBasicBlockList().push_back(mergeBB);
   l.builder->SetInsertPoint(mergeBB);
 }
-void CodeGenVisitor::visit(WhileStmt* st) { unimplemented(); }
-void CodeGenVisitor::visit(BreakStmt* st) { unimplemented(); }
+void CodeGenVisitor::visit(WhileStmt* st) {
+  auto f = l.builder->GetInsertBlock()->getParent();
+  auto beginB = llvm::BasicBlock::Create(*l.ctx, "loopBegin", f);
+  auto bodyB = llvm::BasicBlock::Create(*l.ctx, "loopBody");
+  auto endB = llvm::BasicBlock::Create(*l.ctx, "loopEnd");
+
+  l.builder->CreateBr(beginB);
+
+  // emit the condittion
+  CodeGenExprVisitor v(scope, l);
+  l.builder->SetInsertPoint(beginB);
+  v.visit(st->condition);
+  l.builder->CreateCondBr(v.getValue(), bodyB, endB);
+
+  // emit the body
+  auto t = scope.getTrace();
+  t.endB = endB;
+  t.contB = beginB;
+  auto v1 = wrapWithTrace(&t);
+  f->getBasicBlockList().push_back(bodyB);
+  l.builder->SetInsertPoint(bodyB);
+  v1.visit(st->body);
+  if (!v1.terminate) l.builder->CreateBr(beginB);
+
+  // set inserter to endB
+  l.builder->SetInsertPoint(endB);
+  f->getBasicBlockList().push_back(endB);
+}
+void CodeGenVisitor::visit(BreakStmt* st) {
+  auto t = scope.getTrace();
+  auto endB = t.endB;
+
+  terminate = true;
+
+  if (!endB) abortMsg("break in non-loop");
+  l.builder->CreateBr(endB);
+}
 void CodeGenVisitor::visit(ReturnStmt* st) {
+  auto t = scope.getTrace();
+
+  terminate = true;
+
   CodeGenExprVisitor v(scope, l);
   v.visit(st->expr);
-  auto val =
-      l.implictConvert(v.getValue(), scope.getTrace().llvmFun->getReturnType());
+  auto val = l.implictConvert(v.getValue(), t.llvmFun->getReturnType());
   l.builder->CreateRet(val);
 }

@@ -16,8 +16,9 @@ struct Record {
 
 class Literal;
 struct Trace {
-  llvm::Function *llvmFun;
+  llvm::Function* llvmFun;
   FunDecl* fun;
+  llvm::BasicBlock* contB;
   llvm::BasicBlock* endB;
 };
 class Scope {
