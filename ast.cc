@@ -7,7 +7,6 @@
 #include <iostream>
 #include <sstream>
 
-#include "exception.h"
 #include "log.h"
 using std::string;
 
