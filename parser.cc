@@ -439,7 +439,7 @@ Expr* Parser::index() {
   Expr* e = primary();
   if (match(1, LEFT_SQUARE)) {
     advance();
-    auto i = primary();
+    auto i = expression();
     e = new Index(e, i);
     consume(RIGHT_SQUARE, "Expect `]` after indexing");
   }
