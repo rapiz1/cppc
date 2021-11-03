@@ -254,9 +254,9 @@ void CodeGenExprVisitor::visit(Index* expr) {
 }
 void CodeGenExprVisitor::visit(Call* expr) {
   // Look up the name in the global module table.
-  llvm::Function* fun =
-      l.mod->getFunction(dynamic_cast<Variable*>(expr->callee)->name);
-  if (!fun) abortMsg("Unknown function referenced");
+  auto funcName = dynamic_cast<Variable*>(expr->callee)->name;
+  llvm::Function* fun = l.mod->getFunction(funcName);
+  if (!fun) abortMsg("Unknown function " + funcName + " referenced");
 
   // If argument mismatch error.
   if (fun->arg_size() != expr->args.size())
