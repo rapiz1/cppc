@@ -64,8 +64,7 @@ std::vector<Declaration*> Parser::program() {
 
 Declaration* Parser::decl() {
   Declaration* d = nullptr;
-  Type type;
-  Token id(INVALID, "invalid", 0);
+  TypedVar var;
   switch (peek().tokenType) {
     case VAR:
     case INT:
@@ -73,13 +72,11 @@ Declaration* Parser::decl() {
     case FLOAT:
     case CHAR:
     case BOOL:
-      type = parseType();
-
-      id = consume(IDENTIFIER, "Expect an identifier");
+      var = typedVar();
       if (match(1, LEFT_PAREN))
-        d = funDecl(type, id);
+        d = funDecl(var.type, var.id);
       else
-        d = varDecl(type, id);
+        d = varDecl(var.type, var.id);
       break;
     default:
       d = stmt();
@@ -245,7 +242,7 @@ ExprStmt* Parser::exprStmt() {
   return s;
 }
 
-Type Parser::parseType() {
+TypedVar Parser::typedVar() {
   Type::Base base;
   Token t = advance();
   switch (t.tokenType) {
@@ -266,11 +263,9 @@ Type Parser::parseType() {
       std::cerr << "Unexpected type " << peek().lexeme << std::endl;
       exit(-1);
   }
-  return {base};
-}
+  Token id = consume(IDENTIFIER, "Expect an identifer for variable");
+  Type type = {base};
 
-VarDecl* Parser::varDecl(Type type, Token id) {
-  Expr* init = nullptr;
   if (match(1, LEFT_SQUARE)) {
     // parse array type
     advance();
@@ -281,6 +276,11 @@ VarDecl* Parser::varDecl(Type type, Token id) {
     consume(RIGHT_SQUARE, "Expect `]` affter array size");
   }
 
+  return {type, id};
+}
+
+VarDecl* Parser::varDecl(Type type, Token id) {
+  Expr* init = nullptr;
   if (match(1, EQUAL)) {
     advance();
     init = expression();
@@ -296,10 +296,10 @@ VarDecl* Parser::varDecl(Type type, Token id) {
 Args Parser::args() {
   Args args;
 
-  args.push_back({parseType(), consume(IDENTIFIER, "Expect an identifier")});
+  args.push_back(typedVar());
   while (match(1, COMMA)) {
     advance();
-    args.push_back({parseType(), consume(IDENTIFIER, "Expect an identifier")});
+    args.push_back(typedVar());
   }
 
   return args;

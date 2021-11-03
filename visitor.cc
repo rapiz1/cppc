@@ -350,8 +350,8 @@ void CodeGenVisitor::visit(FunDecl* st) {
   if (st->body == nullptr) {  // a prototype
     size_t i = 0;
     for (auto& a : F->args()) {
-      FormalArg formal = st->args[i++];
-      std::string name = formal.token.lexeme;
+      TypedVar formal = st->args[i++];
+      std::string name = formal.id.lexeme;
       a.setName(name);
     }
     return;
@@ -367,11 +367,11 @@ void CodeGenVisitor::visit(FunDecl* st) {
   // Set names for all arguments.
   size_t i = 0;
   for (auto& a : F->args()) {
-    FormalArg formal = st->args[i++];
-    std::string name = formal.token.lexeme;
+    TypedVar formal = st->args[i++];
+    std::string name = formal.id.lexeme;
     a.setName(name);
     auto addr = l.createEntryBlockAlloca(F, l.getType(formal.type),
-                                         formal.token.lexeme.c_str());
+                                         formal.id.lexeme.c_str());
     l.builder->CreateStore(&a, addr);
     v.scope.define(name, {name, formal.type, addr});
   }

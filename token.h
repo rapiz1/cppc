@@ -73,7 +73,8 @@ struct Token {
   // ??? literal
   int line;
 
-  Token(TokenType tokenType, std::string lexeme, int line)
+  Token(TokenType tokenType = INVALID, std::string lexeme = "invalid",
+        int line = -1)
       : tokenType(tokenType), lexeme(lexeme), line(line) {}
 };
 std::ostream& operator<<(std::ostream& out, Token token);

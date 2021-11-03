@@ -151,12 +151,7 @@ class VarDecl : public Declaration {
   friend class CodeGenVisitor;
 };
 
-struct FormalArg {
-  Type type;
-  Token token;
-};
-
-typedef std::vector<FormalArg> Args;
+typedef std::vector<TypedVar> Args;
 
 class FunDecl : public Declaration {
  protected:
