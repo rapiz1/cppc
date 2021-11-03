@@ -193,6 +193,19 @@ class Call : public Expr {
   friend class CodeGenExprVisitor;
 };
 
+class Index : public Expr {
+  Expr* base;
+  Expr* idx;
+
+ public:
+  Index(Expr* base, Expr* idx) : base(base), idx(idx){};
+  operator std::string() override { return "index " + std::string(*base); };
+  bool isLval() const override { return true; }
+
+  void accept(ExprVisitor* v) override { v->visit(this); }
+  friend class CodeGenExprVisitor;
+};
+
 class Binary : public Expr {
  protected:
   Expr* left;

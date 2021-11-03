@@ -45,7 +45,8 @@ class Parser {
   Expr* factor();      // UNARY (('/' | '*') UNARY)*
   Expr* unary();       // (! | - | -- | ++)* POSTFIX
   Expr* postfix();     // CALL (++ | --)*
-  Expr* call();        // PRIM ('(' ARGS? ')')*
+  Expr* call();        // INDEX ('(' ARGS? ')')*
+  Expr* index();       // PRIM ('[' NUMBER ']')?
   Expr* primary();
 
  public:

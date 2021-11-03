@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cstdarg>
 #include <iostream>
+#include <sstream>
 #include <stack>
 
 void Parser::checkEof() {
@@ -73,12 +74,6 @@ Declaration* Parser::decl() {
     case CHAR:
     case BOOL:
       type = parseType();
-      if (match(1, LEFT_SQUARE)) {
-        // FIXME:
-        std::cerr << "array declaration not implemented\n";
-        exit(-1);
-        consume(RIGHT_SQUARE, "Expect `]`");
-      }
 
       id = consume(IDENTIFIER, "Expect an identifier");
       if (match(1, LEFT_PAREN))
@@ -276,7 +271,15 @@ Type Parser::parseType() {
 
 VarDecl* Parser::varDecl(Type type, Token id) {
   Expr* init = nullptr;
-  if (peek().tokenType == EQUAL) {
+  if (match(1, LEFT_SQUARE)) {
+    // parse array type
+    advance();
+    auto num = consume(NUMBER, "Expect a number literal for array size");
+    std::stringstream ss(num.lexeme);
+    ss >> type.arraySize;
+    type.isArray = true;
+    consume(RIGHT_SQUARE, "Expect `]` affter array size");
+  } else if (match(1, EQUAL)) {  // array doesn't support initializers
     advance();
     init = expression();
   }
@@ -413,7 +416,7 @@ Expr* Parser::postfix() {
 }
 
 Expr* Parser::call() {
-  Expr* e = primary();
+  Expr* e = index();
   while (match(1, LEFT_PAREN)) {
     advance();
     RealArgs a;
@@ -422,6 +425,17 @@ Expr* Parser::call() {
     }
     e = new Call(e, a);
     consume(RIGHT_PAREN, "Expect `)` after the arugment list");
+  }
+  return e;
+}
+
+Expr* Parser::index() {
+  Expr* e = primary();
+  if (match(1, LEFT_SQUARE)) {
+    advance();
+    auto i = primary();
+    e = new Index(e, i);
+    consume(RIGHT_SQUARE, "Expect `]` after indexing");
   }
   return e;
 }
