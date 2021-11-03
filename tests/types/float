@@ -1,2 +1,4 @@
-float a = 1;
-print a;
+int main() {
+  float a = 1;
+  print a;
+}

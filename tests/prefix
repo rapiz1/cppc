@@ -1,8 +1,10 @@
-int a = 3;
-assert --a == 2;
-assert ++a == 3;
-bool b = true;
-assert !b == false;
-assert !!b == true;
-assert !!!b == false;
-assert !!!!b == true;
+int main() {
+  int a = 3;
+  assert --a == 2;
+  assert ++a == 3;
+  bool b = true;
+  assert !b == false;
+  assert !!b == true;
+  assert !!!b == false;
+  assert !!!!b == true;
+}

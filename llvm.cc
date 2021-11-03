@@ -2,19 +2,24 @@
 
 #include "log.h"
 
+llvm::Type* llvmWrapper::getBool() { return llvm::Type::getInt1Ty(*ctx); }
+llvm::Type* llvmWrapper::getInt() { return llvm::Type::getInt32Ty(*ctx); }
+llvm::Type* llvmWrapper::getChar() { return llvm::Type::getInt8Ty(*ctx); }
+llvm::Type* llvmWrapper::getDouble() { return llvm::Type::getDoubleTy(*ctx); }
+
 llvm::Type* llvmWrapper::getType(Type type) {
   switch (type.base) {
     case Type::Base::INT:
-      return llvm::Type::getInt32Ty(*ctx);
+      return getInt();
       break;
     case Type::Base::DOUBLE:
-      return llvm::Type::getDoubleTy(*ctx);
+      return getDouble();
       break;
     case Type::Base::BOOL:
-      return llvm::Type::getInt1Ty(*ctx);
+      return getBool();
       break;
     case Type::Base::CHAR:
-      return llvm::Type::getInt8Ty(*ctx);
+      return getChar();
       break;
     default:
       abortMsg("Unrecognize type");
@@ -24,14 +29,12 @@ llvm::Type* llvmWrapper::getType(Type type) {
 
 llvm::Value* llvmWrapper::convertToTruthy(llvm::Value* v) {
   auto t = v->getType();
-  int w = t->getIntegerBitWidth();
+  if (t == getBool()) return v;
   if (t->isIntegerTy()) {
-    if (t == llvm::Type::getInt1Ty(*ctx))
-      return v;
-    else
-      return builder->CreateICmpNE(
-          v, llvm::ConstantInt::get(llvm::IntegerType::get(*ctx, w),
-                                    llvm::APInt(w, 0, true)));
+    int w = t->getIntegerBitWidth();
+    return builder->CreateICmpNE(
+        v, llvm::ConstantInt::get(llvm::IntegerType::get(*ctx, w),
+                                  llvm::APInt(w, 0, true)));
   }
   abortMsg("can't use value as boolean");
   return nullptr;
@@ -50,6 +53,8 @@ llvm::Value* llvmWrapper::implictConvert(llvm::Value* v, llvm::Type* t) {
   if (v->getType() == t) return v;
   if (t->isDoubleTy()) {
     return builder->CreateSIToFP(v, t, "todouble");
+  } else if (t == getBool()) {
+    return convertToTruthy(v);
   } else if (t->isIntegerTy()) {
     if (!v->getType()->isIntegerTy())
       abortMsg("can't implict convert double into int");

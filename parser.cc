@@ -63,6 +63,8 @@ std::vector<Declaration*> Parser::program() {
 
 Declaration* Parser::decl() {
   Declaration* d = nullptr;
+  Type type;
+  Token id(INVALID, "invalid", 0);
   switch (peek().tokenType) {
     case VAR:
     case INT:
@@ -70,13 +72,20 @@ Declaration* Parser::decl() {
     case FLOAT:
     case CHAR:
     case BOOL:
-      d = varDecl();
-      break;
+      type = parseType();
+      if (match(1, LEFT_SQUARE)) {
+        // FIXME:
+        std::cerr << "array declaration not implemented\n";
+        exit(-1);
+        consume(RIGHT_SQUARE, "Expect `]`");
+      }
 
-    case FUNCTION:
-      d = funDecl();
+      id = consume(IDENTIFIER, "Expect an identifier");
+      if (match(1, LEFT_PAREN))
+        d = funDecl(type, id);
+      else
+        d = varDecl(type, id);
       break;
-
     default:
       d = stmt();
       break;
@@ -265,19 +274,7 @@ Type Parser::parseType() {
   return {base};
 }
 
-VarDecl* Parser::varDecl() {
-  Type type = parseType();
-
-  if (match(1, LEFT_SQUARE)) {
-    // FIXME:
-    std::cerr << "array declaration not implemented\n";
-    exit(-1);
-
-    consume(RIGHT_SQUARE, "Expect `]`");
-  }
-
-  Token id = consume(IDENTIFIER, "Expect an identifier");
-
+VarDecl* Parser::varDecl(Type type, Token id) {
   Expr* init = nullptr;
   if (peek().tokenType == EQUAL) {
     advance();
@@ -315,9 +312,7 @@ RealArgs Parser::real_args() {
   return args;
 }
 
-FunDecl* Parser::funDecl() {
-  consume(FUNCTION, "Expect a `function` declaration");
-  Token id = consume(IDENTIFIER, "Expect an identifier for function name");
+FunDecl* Parser::funDecl(Type retType, Token id) {
   consume(LEFT_PAREN, "Expect `(` as argument list begins");
 
   Args a;
@@ -326,11 +321,6 @@ FunDecl* Parser::funDecl() {
   }
 
   consume(RIGHT_PAREN, "Expect `)` as argument list ends");
-  Type retType = {};
-  if (match(1, RIGHT_ARROW)) {
-    advance();
-    retType = parseType();
-  }
 
   BlockStmt* b = blockStmt();
 

@@ -7,7 +7,4 @@ inline void abortMsg(std::string s) {
   exit(-1);
 };
 
-inline void unimplemented() {
-  std::cerr << "unimplemented\n";
-  exit(-1);
-}
+inline void unimplemented() { abortMsg("unimplemented"); }

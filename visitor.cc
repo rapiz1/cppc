@@ -25,6 +25,9 @@ void CodeGenExprVisitor::visit(Integer* expr) {
 void CodeGenExprVisitor::visit(Double* expr) {
   setValue(llvm::ConstantFP::get(*l.ctx, llvm::APFloat(expr->value)));
 }
+void CodeGenExprVisitor::visit(Boolean* expr) {
+  setValue(llvm::ConstantInt::get(*l.ctx, llvm::APInt(1, expr->value)));
+}
 
 void CodeGenExprVisitor::visit(Binary* expr) {
   CodeGenExprVisitor lv(scope, l);
@@ -52,12 +55,16 @@ void CodeGenExprVisitor::visit(Binary* expr) {
       rhs = l.builder->CreateFPCast(rhs, llvm::Type::getDoubleTy(*l.ctx),
                                     "casttmp");
   } else if (hasInteger) {
-    if (!lhs->getType()->isIntegerTy())
-      lhs = l.builder->CreateIntCast(lhs, llvm::Type::getInt32Ty(*l.ctx), true,
-                                     "casttmp");
-    if (!rhs->getType()->isIntegerTy())
-      rhs = l.builder->CreateIntCast(rhs, llvm::Type::getInt32Ty(*l.ctx), true,
-                                     "casttmp");
+    unsigned int maxw = 0;
+    if (lhs->getType()->isIntegerTy())
+      maxw = std::max(maxw, lhs->getType()->getIntegerBitWidth());
+    if (rhs->getType()->isIntegerTy())
+      maxw = std::max(maxw, rhs->getType()->getIntegerBitWidth());
+    auto upgradeType = llvm::IntegerType::get(*l.ctx, maxw);
+    if (lhs->getType() != upgradeType)
+      lhs = l.builder->CreateIntCast(lhs, upgradeType, true, "casttmp");
+    if (rhs->getType() != upgradeType)
+      rhs = l.builder->CreateIntCast(rhs, upgradeType, true, "casttmp");
   }
   switch (op) {
     case PLUS:
@@ -154,22 +161,58 @@ void CodeGenExprVisitor::visit(Binary* expr) {
 }
 
 void CodeGenExprVisitor::visit(Unary* expr) {
-  unimplemented();
-  /*
   visit(expr->child);
-  auto v = getValue();
   auto op = expr->op.tokenType;
-  switch (op) {
-    case BANG:
-      break;
-
-    default:
-      break;
+  if (op == BANG) {
+    value = l.convertToTruthy(value);
+    value = l.builder->CreateNot(value);
+  } else if (op == MINUS) {
+    value = l.builder->CreateNeg(value);
+  } else {
+    if (!addr)
+      abortMsg("cannot apply operator " + expr->op.lexeme + " to lvalue");
+    if (!value->getType()->isIntegerTy())
+      abortMsg("cant apply " + expr->op.lexeme + "to non integer");
+    int width = value->getType()->getIntegerBitWidth();
+    auto con = llvm::Constant::getIntegerValue(value->getType(),
+                                               llvm::APInt(width, 1, true));
+    switch (op) {
+      case MINUSMINUS:
+        value = l.builder->CreateSub(value, con);
+        break;
+      case PLUSPLUS:
+        value = l.builder->CreateAdd(value, con);
+        break;
+      default:
+        break;
+    }
+    l.builder->CreateStore(addr, value);
   }
-  */
 }
 
-void CodeGenExprVisitor::visit(Postfix* expr) { abortMsg("unimplemented"); }
+void CodeGenExprVisitor::visit(Postfix* expr) {
+  visit(expr->child);
+  auto val = getValue();
+  auto addr = getAddr();
+  if (!val->getType()->isIntegerTy())
+    abortMsg("cant apply " + expr->op.lexeme + "to non integer");
+  int width = val->getType()->getIntegerBitWidth();
+  auto con = llvm::Constant::getIntegerValue(val->getType(),
+                                             llvm::APInt(width, 1, true));
+  llvm::Value* ret = nullptr;
+  switch (expr->op.tokenType) {
+    case PLUSPLUS:
+      ret = l.builder->CreateAdd(val, con);
+      break;
+    case MINUSMINUS:
+      ret = l.builder->CreateSub(val, con);
+      break;
+    default:
+      abortMsg("unimplemented postfix operator " + expr->op.lexeme);
+      break;
+  }
+  l.builder->CreateStore(ret, addr);
+}
 void CodeGenExprVisitor::visit(Variable* expr) {
   auto r = scope.get(expr->name);
   addr = r.addr;
@@ -206,9 +249,16 @@ void CodeGenVisitor::visit(ExprStmt* st) {
   CodeGenExprVisitor v(scope, l);
   v.visit(st->expr);
 }
-void CodeGenVisitor::visit(AssertStmt* st) { /*unimplemented();*/
+void CodeGenVisitor::visit(AssertStmt* st) {
+  CodeGenExprVisitor v(scope, l);
+  v.visit(st->expr);
+  // FIXME:
 }
-void CodeGenVisitor::visit(PrintStmt* st) { unimplemented(); }
+void CodeGenVisitor::visit(PrintStmt* st) {
+  CodeGenExprVisitor v(scope, l);
+  v.visit(st->expr);
+  // FIXME:
+}
 void CodeGenVisitor::visit(VarDecl* st) {
   auto type = l.getType(st->type);
   auto addr =

@@ -22,6 +22,10 @@ struct llvmWrapper {
     mod = std::make_shared<llvm::Module>("mod", *ctx);
     builder = std::make_shared<llvm::IRBuilder<>>(*ctx);
   };
+  llvm::Type* getBool();
+  llvm::Type* getInt();
+  llvm::Type* getChar();
+  llvm::Type* getDouble();
   llvm::Type* getType(Type t);
   llvm::Value* convertToTruthy(llvm::Value*);
   llvm::Value* implictConvert(llvm::Value*, llvm::Type*);

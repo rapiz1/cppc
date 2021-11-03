@@ -1,2 +1,4 @@
-double a = 1.2;
-print a;
+int main() {
+  double a = 1.2;
+  print a;
+}

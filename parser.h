@@ -30,11 +30,12 @@ class Parser {
   WhileStmt* whileStmt();    // WHILE '(' EXPRESSION ')' STMT
   ReturnStmt* returnStmt();  // RETURN EXPR;
   Type parseType();          // (VAR | INT | DOUBLE | CHAR)
-  VarDecl* varDecl();        // TYPE ('['SIZE']')? IDENTIFIER
-                             // (EQUAL EXPRESSION)? ;
-  FunDecl* funDecl();  // FUN IDENTIFIER '(' ARGS? ')' (RIGHT_ARROW TYPE)? BLOCK
-  Args args();         // TYPE ID (, TYPE ID)*
-  RealArgs real_args();  // EXPR (, EXPR)*
+  VarDecl* varDecl(Type type, Token id);  // TYPE ('['SIZE']')? IDENTIFIER
+                                          // (EQUAL EXPRESSION)? ;
+  FunDecl* funDecl(Type type,
+                   Token id);  // TYPE IDENTIFIER '(' ARGS? ')' BLOCK
+  Args args();                 // TYPE ID (, TYPE ID)*
+  RealArgs real_args();        // EXPR (, EXPR)*
 
   Expr* expression();  // ASSIGN
   Expr* assignment();  // LVAL '=' EQUALITY | EQUALITY

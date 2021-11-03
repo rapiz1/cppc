@@ -1,2 +1,4 @@
-bool b = true;
-print b;
+int main() {
+  bool b = true;
+  print b;
+}

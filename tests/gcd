@@ -1,10 +1,13 @@
-function gcd(int a, int b) -> int {
+int gcd(int a, int b) {
   if (b == 0) return a;
   while (a >= b) a = a - b;
   return gcd(b, a);
 }
 
-assert gcd(99, 121) == 11;
-assert gcd(1, 1) == 1;
-assert gcd(123, 8) == 1;
-assert gcd(21, 30) == 3;
+int main() {
+  assert gcd(99, 121) == 11;
+  assert gcd(1, 1) == 1;
+  assert gcd(123, 8) == 1;
+  assert gcd(21, 30) == 3;
+}
+
