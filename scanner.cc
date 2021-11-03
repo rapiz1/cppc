@@ -135,6 +135,9 @@ void Scanner::scanToken() {
     case '>':
       addToken(match('=') ? GREATER_EQUAL : GREATER);
       break;
+    case '%':
+      addToken(PERCENT);
+      break;
     case '(':
       addToken(LEFT_PAREN);
       break;

@@ -20,6 +20,7 @@ enum TokenType {
   STAR,
   LEFT_SQUARE,
   RIGHT_SQUARE,
+  PERCENT,
 
   // One or two character tokens.
   BANG,

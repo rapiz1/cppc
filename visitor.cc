@@ -106,6 +106,12 @@ void CodeGenExprVisitor::visit(Binary* expr) {
       else
         abortMsg("type mismatched");
       break;
+    case PERCENT:
+      if (hasInteger) {
+        setTuple(l.builder->CreateSRem(lhs, rhs));
+      } else
+        abortMsg("cannot apply operator % on non-integer type");
+      break;
     case LESS:
       if (hasDouble)
         setTuple(l.builder->CreateFCmpOLT(lhs, rhs));

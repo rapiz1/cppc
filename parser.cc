@@ -389,7 +389,7 @@ Expr* Parser::term() {
 
 Expr* Parser::factor() {
   Expr* left = unary();
-  while (match(2, STAR, SLASH)) {
+  while (match(3, STAR, SLASH, PERCENT)) {
     Token op = advance();
     Expr* right = unary();
     left = new Binary(left, op, right);
