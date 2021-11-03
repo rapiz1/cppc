@@ -158,7 +158,10 @@ IfStmt* Parser::ifStmt() {
   assert(tb);
 
   Statement* fb = nullptr;
-  if (peek().tokenType == LEFT_BRACE) fb = blockStmt();
+  if (match(1, ELSE)) {
+    advance();
+    fb = stmt();
+  }
 
   i = new IfStmt(e, tb, fb);
   assert(i);
