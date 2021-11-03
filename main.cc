@@ -24,7 +24,7 @@ int run(const string& s) {
     v.visit(s);
     cout << endl;
   }
-  l.mod->print(llvm::errs(), nullptr);
+  l.mod->print(llvm::outs(), nullptr);
   return 0;
 }
 
