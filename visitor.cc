@@ -57,7 +57,7 @@ void CodeGenExprVisitor::visit(Binary* expr) {
     if (!rhs->getType()->isDoubleTy())
       rhs = l.builder->CreateFPCast(rhs, llvm::Type::getDoubleTy(*l.ctx),
                                     "casttmp");
-  } else if (hasInteger) {
+  } else if (hasInteger) {  // integer upgrade
     unsigned int maxw = 0;
     if (lhs->getType()->isIntegerTy())
       maxw = std::max(maxw, lhs->getType()->getIntegerBitWidth());
@@ -216,10 +216,41 @@ void CodeGenExprVisitor::visit(Postfix* expr) {
   }
   l.builder->CreateStore(ret, addr);
 }
+void CodeGenExprVisitor::visit(String* expr) {
+  auto s = expr->value;
+  int size = s.size() + 1;
+  addr = nullptr;
+  value = l.createEntryBlockAlloca(
+      scope.getTrace().llvmFun, l.getChar(), s,
+      llvm::Constant::getIntegerValue(l.getInt(), llvm::APInt(32, size)));
+  for (int i = 0; i <= s.size(); i++) {
+    char c = 0;
+    if (i < s.size()) c = s[i];
+    auto ptr = l.builder->CreateConstGEP1_32(value, i, "idx");
+    l.builder->CreateStore(
+        llvm::Constant::getIntegerValue(l.getChar(), llvm::APInt(8, c)), ptr);
+  }
+}
 void CodeGenExprVisitor::visit(Variable* expr) {
   auto r = scope.get(expr->name);
-  addr = r.addr;
-  value = l.builder->CreateLoad(l.getType(r.type), r.addr, r.id.c_str());
+  if (r.type.isArray) {
+    addr = nullptr;  // an array is a lvalue
+    value = r.addr;  // value of an array is its base address
+  } else {
+    addr = r.addr;
+    value = l.builder->CreateLoad(l.getType(r.type), r.addr, r.id.c_str());
+  }
+}
+void CodeGenExprVisitor::visit(Index* expr) {
+  CodeGenExprVisitor ev(scope, l);
+  ev.visit(expr->base);
+  CodeGenExprVisitor ev2(scope, l);
+  ev2.visit(expr->idx);
+  auto idx = ev2.getValue();
+  auto base = ev.getValue();
+  auto ptr = l.builder->CreateGEP(base, idx);
+  value = l.builder->CreateLoad(ptr);
+  addr = static_cast<llvm::AllocaInst*>(ptr);
 }
 void CodeGenExprVisitor::visit(Call* expr) {
   // Look up the name in the global module table.
@@ -268,17 +299,38 @@ void CodeGenVisitor::visit(PrintStmt* st) {
 }
 void CodeGenVisitor::visit(VarDecl* st) {
   auto type = l.getType(st->type);
-  auto addr =
-      l.createEntryBlockAlloca(scope.getTrace().llvmFun, type, st->identifier);
-  scope.define(st->identifier, {st->identifier, st->type, addr});
-  if (st->init) {
-    CodeGenExprVisitor ev(scope, l);
-    ev.visit(st->init);
-    auto val = ev.getValue();
-    val = l.implictConvert(val, type);
-    l.builder->CreateStore(val, addr);
+
+  llvm::Value* size = nullptr;
+
+  if (st->type.isArray) {
+    size = llvm::Constant::getIntegerValue(l.getInt(),
+                                           llvm::APInt(32, st->type.arraySize));
   }
+
+  llvm::AllocaInst* addr = nullptr;
+  if (st->init && st->type.isArray) {
+    auto baseType = st->type.base;
+    if (baseType == Type::Base::CHAR && dynamic_cast<String*>(st->init)) {
+      CodeGenExprVisitor ev(scope, l);
+      ev.visit(st->init);
+      addr = (llvm::AllocaInst*)ev.getValue();
+    } else {
+      abortMsg("array doesn't not support this kind of initializers");
+    }
+  } else {
+    addr = l.createEntryBlockAlloca(scope.getTrace().llvmFun, type,
+                                    st->identifier, size);
+    if (st->init) {
+      CodeGenExprVisitor ev(scope, l);
+      ev.visit(st->init);
+      auto val = ev.getValue();
+      val = l.implictConvert(val, type);
+      l.builder->CreateStore(val, addr);
+    }
+  }
+  scope.define(st->identifier, {st->identifier, st->type, addr});
 }
+
 void CodeGenVisitor::visit(FunDecl* st) {
   if (scope.isWrapped()) abortMsg("nested function is forbidden");
   llvm::Function* F = l.mod->getFunction(st->identifier);
@@ -341,8 +393,8 @@ void CodeGenVisitor::visit(IfStmt* st) {
   condV = l.convertToTruthy(condV);
   llvm::Function* fun = l.builder->GetInsertBlock()->getParent();
 
-  // Create blocks for the then and else cases.  Insert the 'then' block at the
-  // end of the function.
+  // Create blocks for the then and else cases.  Insert the 'then' block at
+  // the end of the function.
   llvm::BasicBlock* thenBB = llvm::BasicBlock::Create(*l.ctx, "then", fun);
   llvm::BasicBlock* elseBB = llvm::BasicBlock::Create(*l.ctx, "else");
   llvm::BasicBlock* mergeBB = llvm::BasicBlock::Create(*l.ctx, "ifcont");
@@ -367,7 +419,8 @@ void CodeGenVisitor::visit(IfStmt* st) {
   }
   if (!else_terminate) l.builder->CreateBr(mergeBB);
 
-  // codegen of 'Else' can change the current block, update ElseBB for the PHI.
+  // codegen of 'Else' can change the current block, update ElseBB for the
+  // PHI.
   elseBB = l.builder->GetInsertBlock();
 
   // Emit merge block.

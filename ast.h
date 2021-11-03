@@ -292,6 +292,7 @@ class String : public Literal {
 
   void accept(ExprVisitor* v) override { v->visit(this); }
   friend class CodeGenExprVisitor;
+  friend class CodeGenVisitor;
 };
 
 class Char : public Literal {

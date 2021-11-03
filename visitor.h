@@ -9,10 +9,12 @@ class Unary;
 class Postfix;
 class Variable;
 class Call;
+class Index;
 class Double;
 class Integer;
 class Boolean;
 class Char;
+class String;
 
 class Declaration;
 class VarDecl;
@@ -53,11 +55,13 @@ class ExprVisitor {
   virtual void visit(Double* expr) = 0;
   virtual void visit(Boolean* expr) = 0;
   virtual void visit(Char* expr) = 0;
+  virtual void visit(String* expr) = 0;
   virtual void visit(Binary* expr) = 0;
   virtual void visit(Unary* expr) = 0;
   virtual void visit(Postfix* expr) = 0;
   virtual void visit(Variable* expr) = 0;
   virtual void visit(Call* expr) = 0;
+  virtual void visit(Index* expr) = 0;
 };
 
 class CodeGenExprVisitor : public ExprVisitor {
@@ -74,11 +78,13 @@ class CodeGenExprVisitor : public ExprVisitor {
   void visit(Double* expr) override;
   void visit(Boolean* expr) override;
   void visit(Char* expr) override;
+  void visit(String* expr) override;
   void visit(Binary* expr) override;
   void visit(Unary* expr) override;
   void visit(Postfix* expr) override;
   void visit(Variable* expr) override;
   void visit(Call* expr) override;
+  void visit(Index* expr) override;
 
   void setValue(llvm::Value* v) { value = v; }
   void setAddr(llvm::AllocaInst* a) { addr = a; }

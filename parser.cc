@@ -279,7 +279,9 @@ VarDecl* Parser::varDecl(Type type, Token id) {
     ss >> type.arraySize;
     type.isArray = true;
     consume(RIGHT_SQUARE, "Expect `]` affter array size");
-  } else if (match(1, EQUAL)) {  // array doesn't support initializers
+  }
+
+  if (match(1, EQUAL)) {
     advance();
     init = expression();
   }

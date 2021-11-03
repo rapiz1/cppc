@@ -31,5 +31,6 @@ struct llvmWrapper {
   llvm::Value* implictConvert(llvm::Value*, llvm::Type*);
   llvm::AllocaInst* createEntryBlockAlloca(llvm::Function* fun,
                                            llvm::Type* type,
-                                           const std::string& name);
+                                           const std::string& name,
+                                           llvm::Value* num = nullptr);
 };

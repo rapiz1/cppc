@@ -44,9 +44,10 @@ llvm::Value* llvmWrapper::convertToTruthy(llvm::Value* v) {
 /// the function.  This is used for mutable variables etc.
 llvm::AllocaInst* llvmWrapper::createEntryBlockAlloca(llvm::Function* fun,
                                                       llvm::Type* type,
-                                                      const std::string& name) {
+                                                      const std::string& name,
+                                                      llvm::Value* num) {
   llvm::IRBuilder<> TmpB(&fun->getEntryBlock(), fun->getEntryBlock().begin());
-  return TmpB.CreateAlloca(type, 0, name.c_str());
+  return TmpB.CreateAlloca(type, num, name.c_str());
 }
 
 llvm::Value* llvmWrapper::implictConvert(llvm::Value* v, llvm::Type* t) {
