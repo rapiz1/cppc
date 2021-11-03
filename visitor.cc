@@ -393,6 +393,12 @@ void CodeGenVisitor::visit(FunDecl* st) {
   }
 
   v.visit(st->body);
+
+  // add a "return 0" automatically if it's missing in function main
+  if (!v.terminate && st->identifier == "main") {
+    l.builder->CreateRet(
+        llvm::Constant::getIntegerValue(l.getInt(), llvm::APInt(32, 0)));
+  }
   if (llvm::verifyFunction(*F, &llvm::errs()))
     ;  // abortMsg("verify error");
   // F->eraseFromParent();
