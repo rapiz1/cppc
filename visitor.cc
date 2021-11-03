@@ -28,6 +28,9 @@ void CodeGenExprVisitor::visit(Double* expr) {
 void CodeGenExprVisitor::visit(Boolean* expr) {
   setValue(llvm::ConstantInt::get(*l.ctx, llvm::APInt(1, expr->value)));
 }
+void CodeGenExprVisitor::visit(Char* expr) {
+  setValue(llvm::ConstantInt::get(*l.ctx, llvm::APInt(8, expr->value)));
+}
 
 void CodeGenExprVisitor::visit(Binary* expr) {
   CodeGenExprVisitor lv(scope, l);
@@ -232,12 +235,16 @@ void CodeGenExprVisitor::visit(Call* expr) {
 
   CodeGenExprVisitor v(scope, l);
 
+  size_t i = 0;
   for (auto a : expr->args) {
+    auto protoArg = fun->getArg(i++);
     v.visit(a);
-    args.push_back(v.getValue());
+    auto val = v.getValue();
+    val = l.implictConvert(val, protoArg->getType());
+    args.push_back(val);
     if (!args.back()) {
       value = nullptr;
-      return;
+      abortMsg("failed to generate for arguments");
     }
   }
 
@@ -264,6 +271,13 @@ void CodeGenVisitor::visit(VarDecl* st) {
   auto addr =
       l.createEntryBlockAlloca(scope.getTrace().llvmFun, type, st->identifier);
   scope.define(st->identifier, {st->identifier, st->type, addr});
+  if (st->init) {
+    CodeGenExprVisitor ev(scope, l);
+    ev.visit(st->init);
+    auto val = ev.getValue();
+    val = l.implictConvert(val, type);
+    l.builder->CreateStore(val, addr);
+  }
 }
 void CodeGenVisitor::visit(FunDecl* st) {
   if (scope.isWrapped()) abortMsg("nested function is forbidden");

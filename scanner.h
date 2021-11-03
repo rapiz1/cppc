@@ -25,6 +25,7 @@ class Scanner {
 
   void string();
   void number();
+  void readChar();
   void identifierOrKeyword();
 
   void addToken(TokenType type);

@@ -438,6 +438,9 @@ Expr* Parser::primary() {
     case STRING:
       prim = new String(advance());
       break;
+    case CHARACTER:
+      prim = new Char(advance());
+      break;
     case TRUE:
     case FALSE:
       prim = new Boolean(advance());

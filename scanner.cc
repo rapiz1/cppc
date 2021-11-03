@@ -3,6 +3,8 @@
 std::string Scanner::get_lexeme(TokenType type) {
   if (type == STRING)
     return source.substr(start + 1, current - start - 2);
+  else if (type == CHAR)
+    return source.substr(start + 1, current - start - 2);
   else
     return source.substr(start, current - start);
 }
@@ -47,6 +49,36 @@ void Scanner::string() {
   }
   advance();
   addToken(STRING);
+}
+
+void Scanner::readChar() {
+  while (peek() != '\'') {
+    if (peek() == '\n') line++;
+    advance();
+  }
+  advance();
+  std::string lexeme = get_lexeme(CHAR);
+  int len = lexeme.size();
+  if (len == 1)
+    ;
+  else if (len == 2) {
+    if (source[start + 1] == '\\') {
+      char c = source[start + 2];
+      char cc = 0;
+      if (c == 'n')
+        cc = '\n';
+      else if (c == 't')
+        cc = '\t';
+      else if (c == '0')
+        cc = '\0';
+      else
+        error("unimplemented escape sequence");
+      lexeme = std::string(1, cc);
+    } else
+      error("bad escape sequence");
+  } else
+    error("bad char literal " + lexeme);
+  tokens.push_back(Token(CHARACTER, lexeme, line));
 }
 
 void Scanner::number() {
@@ -129,6 +161,9 @@ void Scanner::scanToken() {
       break;
     case ';':
       addToken(SEMICOLON);
+      break;
+    case '\'':
+      readChar();
       break;
     case '\n':
       line++;

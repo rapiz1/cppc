@@ -38,6 +38,7 @@ enum TokenType {
   IDENTIFIER,
   STRING,
   NUMBER,
+  CHARACTER,
 
   // Keywords.
   AND,

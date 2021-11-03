@@ -31,6 +31,12 @@ Double::operator std::string() {
 
 String::operator std::string() { return "\"" + value + "\""; }
 
+Char::operator std::string() {
+  string s;
+  s.push_back(value);
+  return s;
+}
+
 Integer::Integer(Token token) {
   std::stringstream ss(token.lexeme);
   ss >> value;
@@ -42,3 +48,11 @@ Double::Double(Token token) {
 }
 
 Boolean::operator std::string() { return value ? "true" : "false"; }
+
+Char::Char(Token token) {
+  std::string s = token.lexeme;
+  if (s.size() == 1)
+    value = s[0];
+  else
+    abortMsg("bad char literal");
+}

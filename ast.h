@@ -281,6 +281,19 @@ class String : public Literal {
   friend class CodeGenExprVisitor;
 };
 
+class Char : public Literal {
+ protected:
+  char value;
+
+ public:
+  Char(Token token);
+  Char(char value) : value(value){};
+  operator std::string() override;
+
+  void accept(ExprVisitor* v) override { v->visit(this); }
+  friend class CodeGenExprVisitor;
+};
+
 class Boolean : public Literal {
  protected:
   bool value;
