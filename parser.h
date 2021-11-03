@@ -21,15 +21,15 @@ class Parser {
   Declaration* decl();       // STMT | VAR_DECL
   Statement* stmt();         // PRINT_STMT | BLOCK_STMT | EXPR_STMT | IF_STMT |
                              // FOR_STMT | WHILE_STMT | ASSERT_STMT
-  AssertStmt* assertStmt();  // ASSERT EXPR ;
-  PrintStmt* printStmt();    // PRINT EXPRESSION ;
+  AssertStmt* assertStmt();  // ASSERT EXPR ; TODO: unimplemented
+  PrintStmt* printStmt();    // PRINT EXPRESSION ; TODO: unimplemented
   BlockStmt* blockStmt();    // '{' PROGRAM '}';
   ExprStmt* exprStmt();      // EXPRESSION ;
   IfStmt* ifStmt();          // IF EXPRESSION STMT (ELSE STMT)?
-  BlockStmt* forStmt();      // FOR '(' VAR_DECL EXPRESSION; EXPRESSION ')'
+  BlockStmt* forStmt();      // FOR '(' VAR_DECL EXPRESSION; EXPRESSION ')' STMT
   WhileStmt* whileStmt();    // WHILE '(' EXPRESSION ')' STMT
   ReturnStmt* returnStmt();  // RETURN EXPR;
-  TypedVar typedVar();  // (VAR | INT | DOUBLE | CHAR) '*'? ID ('['SIZE']')?
+  TypedVar typedVar();       // (INT | DOUBLE | CHAR) '*'? ID ('['SIZE']')?
   VarDecl* varDecl(Type type, Token id);  // TYPEDVAR
                                           // (EQUAL EXPRESSION)? ;
   FunDecl* funDecl(Type type,
