@@ -33,7 +33,7 @@ class Parser {
   VarDecl* varDecl(Type type, Token id);  // TYPE ('['SIZE']')? IDENTIFIER
                                           // (EQUAL EXPRESSION)? ;
   FunDecl* funDecl(Type type,
-                   Token id);  // TYPE IDENTIFIER '(' ARGS? ')' BLOCK
+                   Token id);  // TYPE IDENTIFIER '(' ARGS? ')' BLOCK?
   Args args();                 // TYPE ID (, TYPE ID)*
   RealArgs real_args();        // EXPR (, EXPR)*
 

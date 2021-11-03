@@ -322,7 +322,11 @@ FunDecl* Parser::funDecl(Type retType, Token id) {
 
   consume(RIGHT_PAREN, "Expect `)` as argument list ends");
 
-  BlockStmt* b = blockStmt();
+  BlockStmt* b = nullptr;
+  if (match(1, LEFT_BRACE))
+    b = blockStmt();
+  else
+    consume(SEMICOLON, "Expect `,` after function prototype");
 
   return new FunDecl(id.lexeme, a, b, retType);
 }

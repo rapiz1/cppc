@@ -268,7 +268,7 @@ void CodeGenVisitor::visit(VarDecl* st) {
 void CodeGenVisitor::visit(FunDecl* st) {
   if (scope.isWrapped()) abortMsg("nested function is forbidden");
   llvm::Function* F = l.mod->getFunction(st->identifier);
-  if (F) abortMsg("redefine func");
+  if (F && !F->empty()) abortMsg("redefine func");
 
   std::vector<llvm::Type*> args;
   for (auto [type, token] : st->args) {
@@ -281,6 +281,15 @@ void CodeGenVisitor::visit(FunDecl* st) {
 
   F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                              st->identifier, l.mod.get());
+  if (st->body == nullptr) {  // a prototype
+    size_t i = 0;
+    for (auto& a : F->args()) {
+      FormalArg formal = st->args[i++];
+      std::string name = formal.token.lexeme;
+      a.setName(name);
+    }
+    return;
+  }
 
   // Create a new basic block to start insertion into.
   llvm::BasicBlock* BB = llvm::BasicBlock::Create(*l.ctx, st->identifier, F);
@@ -302,8 +311,7 @@ void CodeGenVisitor::visit(FunDecl* st) {
   }
 
   v.visit(st->body);
-  if (llvm::verifyFunction(*F, &llvm::errs()))
-    ;  // abortMsg("verify error");
+  if (llvm::verifyFunction(*F, &llvm::errs())) abortMsg("verify error");
   // F->eraseFromParent();
 }
 void CodeGenVisitor::visit(BlockStmt* st) {
