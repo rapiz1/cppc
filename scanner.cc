@@ -122,6 +122,18 @@ void Scanner::scanToken() {
     case '/':
       if (match('/')) {
         while (peek() != '\n' && !eof()) advance();
+      } else if (match('*')) {
+        char prev = 0, now = 0;
+        while (!eof()) {
+          prev = now;
+          now = advance();
+          if (now == '\n') line++;
+          if (now == '/' && prev == '*') break;
+        }
+        if (now == '/' && prev == '*')
+          ;
+        else
+          error("unterminate block comment");
       } else {
         addToken(match('=') ? SLASH_EQUAL : SLASH);
       }
