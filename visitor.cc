@@ -192,26 +192,24 @@ void CodeGenExprVisitor::visit(Unary* expr) {
       default:
         break;
     }
-    l.builder->CreateStore(addr, value);
+    l.builder->CreateStore(value, addr);
   }
 }
 
 void CodeGenExprVisitor::visit(Postfix* expr) {
   visit(expr->child);
-  auto val = getValue();
-  auto addr = getAddr();
-  if (!val->getType()->isIntegerTy())
+  if (!value->getType()->isIntegerTy())
     abortMsg("cant apply " + expr->op.lexeme + "to non integer");
-  int width = val->getType()->getIntegerBitWidth();
-  auto con = llvm::Constant::getIntegerValue(val->getType(),
+  int width = value->getType()->getIntegerBitWidth();
+  auto con = llvm::Constant::getIntegerValue(value->getType(),
                                              llvm::APInt(width, 1, true));
   llvm::Value* ret = nullptr;
   switch (expr->op.tokenType) {
     case PLUSPLUS:
-      ret = l.builder->CreateAdd(val, con);
+      ret = l.builder->CreateAdd(value, con);
       break;
     case MINUSMINUS:
-      ret = l.builder->CreateSub(val, con);
+      ret = l.builder->CreateSub(value, con);
       break;
     default:
       abortMsg("unimplemented postfix operator " + expr->op.lexeme);
