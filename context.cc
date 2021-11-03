@@ -4,7 +4,6 @@
 #include <iostream>
 
 #include "cmdargs.h"
-#include "converter.h"
 #include "log.h"
 using std::string;
 

@@ -7,7 +7,6 @@
 #include "type.h"
 #include "visitor.h"
 
-class Converter;
 class Expr {
  public:
   virtual operator std::string() = 0;
@@ -254,8 +253,6 @@ class Integer : public Literal {
 
   void accept(ExprVisitor* v) override { v->visit(this); }
   friend class CodeGenExprVisitor;
-
-  friend class Converter;
 };
 
 class Double : public Literal {
@@ -269,8 +266,6 @@ class Double : public Literal {
 
   void accept(ExprVisitor* v) override { v->visit(this); }
   friend class CodeGenExprVisitor;
-
-  friend class Converter;
 };
 
 class String : public Literal {
@@ -284,8 +279,6 @@ class String : public Literal {
 
   void accept(ExprVisitor* v) override { v->visit(this); }
   friend class CodeGenExprVisitor;
-
-  friend class Converter;
 };
 
 class Boolean : public Literal {
@@ -299,8 +292,6 @@ class Boolean : public Literal {
 
   void accept(ExprVisitor* v) override { v->visit(this); }
   friend class CodeGenExprVisitor;
-
-  friend class Converter;
 };
 
 class Function : public Literal {
@@ -313,8 +304,6 @@ class Function : public Literal {
 
   void accept(ExprVisitor* v) override { v->visit(this); }
   friend class CodeGenExprVisitor;
-
-  friend class Converter;
 };
 
 class Variable : public Expr {
