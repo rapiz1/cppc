@@ -347,15 +347,40 @@ Expr* Parser::expression() { return assignment(); }
 
 Expr* Parser::assignment() {
   Expr* e = equality();
-  if (match(1, EQUAL)) {
-    Token eq = advance();
+  if (match(6, EQUAL, SLASH_EQUAL, STAR_EQUAL, PLUS_EQUAL, MINUS_EQUAL,
+            PERCENT_EQUAL)) {
+    Token op = advance();
     Expr* v = assignment();
     if (!e->isLval()) {
-      std::cerr << e << " is not a left value. At line " << eq.line
+      std::cerr << e << " is not a left value. At line " << op.line
                 << std::endl;
       exit(-1);
     }
-    e = new Binary(e, eq, v);
+
+    if (op.tokenType != EQUAL) {  // desuger composition assignment
+      switch (op.tokenType) {
+        case STAR_EQUAL:
+          v = new Binary(e, Token(STAR, "sugar", -1), v);
+          break;
+        case SLASH_EQUAL:
+          v = new Binary(e, Token(SLASH, "sugar", -1), v);
+          break;
+        case PLUS_EQUAL:
+          v = new Binary(e, Token(PLUS, "sugar", -1), v);
+          break;
+        case MINUS_EQUAL:
+          v = new Binary(e, Token(MINUS, "sugar", -1), v);
+          break;
+        case PERCENT_EQUAL:
+          v = new Binary(e, Token(PERCENT, "sugar", -1), v);
+          break;
+        default:
+          std::cerr << op.lexeme << ". At line  " << op.line << std::endl;
+          exit(-1);
+      }
+    }
+    op.tokenType = EQUAL;
+    e = new Binary(e, op, v);
   }
   return e;
 }

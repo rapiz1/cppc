@@ -38,7 +38,8 @@ class Parser {
   RealArgs real_args();        // EXPR (, EXPR)*
 
   Expr* expression();  // ASSIGN
-  Expr* assignment();  // LVAL '=' EQUALITY | EQUALITY
+  Expr* assignment();  // LVAL ('=' | '+=' | '-=' | '*=' | '/=' | '%=') EQUALITY
+                       // | EQUALITY
   Expr* equality();    // COMP ('==' | '!=') COMP | COMP
   Expr* comparsion();  // TERM ('>' | '>=' | '<' | '<=') TERM | TERM
   Expr* term();        // FACTOR (('+' | '-') FACTOR)*

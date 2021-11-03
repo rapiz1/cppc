@@ -108,19 +108,22 @@ void Scanner::scanToken() {
       string();
       break;
     case '*':
-      addToken(STAR);
+      addToken(match('=') ? STAR_EQUAL : STAR);
       break;
     case '+':
-      addToken(match('+') ? PLUSPLUS : PLUS);
+      addToken(match('+') ? PLUSPLUS : match('=') ? PLUS_EQUAL : PLUS);
       break;
     case '-':
-      addToken(match('-') ? MINUSMINUS : match('>') ? RIGHT_ARROW : MINUS);
+      addToken(match('-')   ? MINUSMINUS
+               : match('>') ? RIGHT_ARROW
+               : match('=') ? MINUS_EQUAL
+                            : MINUS);
       break;
     case '/':
       if (match('/')) {
         while (peek() != '\n' && !eof()) advance();
       } else {
-        addToken(SLASH);
+        addToken(match('=') ? SLASH_EQUAL : SLASH);
       }
       break;
     case '!':
@@ -136,7 +139,7 @@ void Scanner::scanToken() {
       addToken(match('=') ? GREATER_EQUAL : GREATER);
       break;
     case '%':
-      addToken(PERCENT);
+      addToken(match('=') ? PERCENT_EQUAL : PERCENT);
       break;
     case '(':
       addToken(LEFT_PAREN);
