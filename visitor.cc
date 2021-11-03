@@ -271,7 +271,11 @@ void CodeGenExprVisitor::visit(Call* expr) {
     auto protoArg = fun->getArg(i++);
     v.visit(a);
     auto val = v.getValue();
-    val = l.implictConvert(val, protoArg->getType());
+    if (protoArg->getType()->isPointerTy()) {
+      // FIXME: a hack. see all array type in function prototype as ptrs
+    } else {
+      val = l.implictConvert(val, protoArg->getType());
+    }
     args.push_back(val);
     if (!args.back()) {
       value = nullptr;
@@ -339,6 +343,10 @@ void CodeGenVisitor::visit(FunDecl* st) {
   std::vector<llvm::Type*> args;
   for (auto [type, token] : st->args) {
     auto t = l.getType(type);
+    if (t->isArrayTy()) {
+      // FIXME: hack, see all array type in funct proto as ptrs
+      t = t->getArrayElementType()->getPointerTo();
+    }
     args.push_back(t);
   }
 

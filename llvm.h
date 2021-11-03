@@ -27,6 +27,7 @@ struct llvmWrapper {
   llvm::Type* getChar();
   llvm::Type* getDouble();
   llvm::Type* getType(Type t);
+  llvm::Type* getBaseType(Type t);
   llvm::Value* convertToTruthy(llvm::Value*);
   llvm::Value* implictConvert(llvm::Value*, llvm::Type*);
   llvm::AllocaInst* createEntryBlockAlloca(llvm::Function* fun,

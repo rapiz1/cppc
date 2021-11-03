@@ -8,6 +8,16 @@ llvm::Type* llvmWrapper::getChar() { return llvm::Type::getInt8Ty(*ctx); }
 llvm::Type* llvmWrapper::getDouble() { return llvm::Type::getDoubleTy(*ctx); }
 
 llvm::Type* llvmWrapper::getType(Type type) {
+  auto baseType = getBaseType(type);
+  if (type.isArray)
+    return llvm::ArrayType::get(baseType, type.arraySize);
+  else if (type.isPointer)
+    return baseType->getPointerTo();
+  else
+    return baseType;
+}
+
+llvm::Type* llvmWrapper::getBaseType(Type type) {
   switch (type.base) {
     case Type::Base::INT:
       return getInt();
@@ -61,7 +71,11 @@ llvm::Value* llvmWrapper::implictConvert(llvm::Value* v, llvm::Type* t) {
       abortMsg("can't implict convert double into int");
     else
       return builder->CreateIntCast(v, t, true, "toint");
-  } else
-    abortMsg("unimplemented implict convert");
+  } else if (t->isArrayTy()) {
+    return v;
+  } else if (t->isPointerTy()) {
+    return builder->CreateGEP(v, 0);
+  }
+  abortMsg("unimplemented implict convert");
   return nullptr;
 }

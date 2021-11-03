@@ -29,8 +29,8 @@ class Parser {
   BlockStmt* forStmt();      // FOR '(' VAR_DECL EXPRESSION; EXPRESSION ')'
   WhileStmt* whileStmt();    // WHILE '(' EXPRESSION ')' STMT
   ReturnStmt* returnStmt();  // RETURN EXPR;
-  TypedVar typedVar();       // (VAR | INT | DOUBLE | CHAR) ID
-  VarDecl* varDecl(Type type, Token id);  // TYPE ('['SIZE']')? IDENTIFIER
+  TypedVar typedVar();  // (VAR | INT | DOUBLE | CHAR) '*'? ID ('['SIZE']')?
+  VarDecl* varDecl(Type type, Token id);  // TYPEDVAR
                                           // (EQUAL EXPRESSION)? ;
   FunDecl* funDecl(Type type,
                    Token id);  // TYPEDVAR '(' ARGS? ')' BLOCK?
