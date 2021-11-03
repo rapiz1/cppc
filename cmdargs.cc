@@ -7,13 +7,16 @@
 const std::string usage = "Usage: clox [source]\n";
 
 CmdArgs::CmdArgs(int argc, char** argv) {
-  lexOutput = false;
-  irOutput = false;
+  compile_ = true;
+  link_ = true;
 
-  debug = true;
-  if (debug) {
-    lexOutput = false;
-    irOutput = true;
+  printLex_ = false;
+  printIR_ = false;
+
+  debug_ = true;
+  if (debug_) {
+    printLex_ = false;
+    printIR_ = true;
   }
 
   if (argc == 2) {
