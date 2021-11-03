@@ -13,7 +13,7 @@ CmdArgs* options;
 int run(const string& s) {
   Scanner scanner(s);
   auto tokens = scanner.scanTokens();
-  if (options->getDebug())
+  if (options->printLex())
     for (auto t : tokens) cerr << t << endl;
   Parser parser;
   auto stmts = parser.parse(tokens);
@@ -24,7 +24,7 @@ int run(const string& s) {
     v.visit(s);
     cout << endl;
   }
-  l.mod->print(llvm::outs(), nullptr);
+  if (options->printIR()) l.mod->print(llvm::outs(), nullptr);
   return 0;
 }
 
@@ -42,21 +42,7 @@ int runFile(const string& file) {
   return run(file_content);
 }
 
-void showPrompt() { cout << ">> "; }
-
-int runPrompt() {
-  string line;
-  while (showPrompt(), getline(cin, line)) {
-    run(line);
-  }
-  return 0;
-}
-
 int main(int argc, char** argv) {
   options = new CmdArgs(argc, argv);
-  if (options->getMode() == RunMode::FROM_FILE) {
-    return runFile(string(argv[1]));
-  } else {
-    return runPrompt();
-  }
+  return runFile(string(argv[1]));
 }

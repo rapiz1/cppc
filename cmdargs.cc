@@ -7,14 +7,19 @@
 const std::string usage = "Usage: clox [script]\n";
 
 CmdArgs::CmdArgs(int argc, char** argv) {
-  debug = false;
-  if (argc > 2) {
+  lexOutput = false;
+  irOutput = false;
+
+  debug = true;
+  if (debug) {
+    lexOutput = false;
+    irOutput = true;
+  }
+
+  if (argc == 2) {
+    fileName = std::string(argv[1]);
+  } else {
     std::cerr << usage;
     exit(-1);
-  } else if (argc == 2) {
-    fileName = std::string(argv[1]);
-    mode = RunMode::FROM_FILE;
-  } else {
-    mode = RunMode::REPL;
   }
 }

@@ -18,7 +18,7 @@ bool Scope::count(string name) {
 }
 
 void Scope::define(string name, Record r) {
-  if (localCount(name) && options->getAllowRedefine()) {
+  if (localCount(name)) {
     std::cerr << "redefine " << name << std::endl;
     exit(-1);
   } else
