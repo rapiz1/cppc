@@ -53,21 +53,21 @@ Record Scope::get(string name) {
   }
 }
 
-ReturnResult Scope::getReason() {
-  if (reason) {
-    return *reason;
+Trace Scope::getTrace() {
+  if (trace) {
+    return *trace;
   } else if (parent) {
-    return parent->getReason();
+    return parent->getTrace();
   } else {
-    return ReturnResult{ReturnReason::NORMAL, nullptr};
+    return Trace{};
   }
 }
 
-void Scope::setReason(ReturnResult r) {
-  if (reason) {
-    *reason = r;
+void Scope::setTrace(Trace r) {
+  if (trace) {
+    *trace = r;
   } else if (parent) {
-    parent->setReason(r);
+    parent->setTrace(r);
   } else {
     std::cerr << "Return in an invalid context";
     exit(-1);

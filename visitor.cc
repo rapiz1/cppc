@@ -10,8 +10,8 @@
 CodeGenVisitor CodeGenVisitor::wrap() {
   return CodeGenVisitor(scope.wrap(), l);
 }
-CodeGenVisitor CodeGenVisitor::wrapWithReason(ReturnResult* r) {
-  return CodeGenVisitor(scope.wrapWithReason(r), l);
+CodeGenVisitor CodeGenVisitor::wrapWithTrace(Trace* r) {
+  return CodeGenVisitor(scope.wrapWithTrace(r), l);
 }
 
 void CodeGenExprVisitor::visit(Expr* expr) { expr->accept(this); }
@@ -116,7 +116,8 @@ void CodeGenExprVisitor::visit(Unary* expr) {
 
 void CodeGenExprVisitor::visit(Postfix* expr) { abortMsg("unimplemented"); }
 void CodeGenExprVisitor::visit(Variable* expr) {
-  value = scope.get(expr->name).arg;
+  auto r = scope.get(expr->name);
+  value = l.builder->CreateLoad(l.getType(r.type), r.addr, r.id.c_str());
 }
 void CodeGenExprVisitor::visit(Call* expr) {
   // Look up the name in the global module table.
@@ -156,19 +157,25 @@ void CodeGenVisitor::visit(FunDecl* st) {
   if (scope.isWrapped()) abortMsg("nested function is forbidden");
   llvm::Function* F = l.mod->getFunction(st->identifier);
   if (F) abortMsg("redefine func");
+
   std::vector<llvm::Type*> args;
   for (auto [type, token] : st->args) {
     auto t = l.getType(type);
     args.push_back(t);
   }
+
   llvm::FunctionType* FT =
       llvm::FunctionType::get(l.getType(st->retType), args, false);
 
   F = llvm::Function::Create(FT, llvm::Function::ExternalLinkage,
                              st->identifier, l.mod.get());
 
-  ReturnResult r = {};
-  auto v = wrapWithReason(&r);
+  // Create a new basic block to start insertion into.
+  llvm::BasicBlock* BB = llvm::BasicBlock::Create(*l.ctx, st->identifier, F);
+  l.builder->SetInsertPoint(BB);
+
+  Trace r = {F, st, nullptr};
+  auto v = wrapWithTrace(&r);
 
   // Set names for all arguments.
   size_t i = 0;
@@ -176,28 +183,67 @@ void CodeGenVisitor::visit(FunDecl* st) {
     FormalArg formal = st->args[i++];
     std::string name = formal.token.lexeme;
     a.setName(name);
-    v.scope.define(name, {name, formal.type, &a});
+    auto addr = l.createEntryBlockAlloca(F, l.getType(formal.type),
+                                         formal.token.lexeme.c_str());
+    l.builder->CreateStore(&a, addr);
+    v.scope.define(name, {name, formal.type, addr});
   }
-
-  // Create a new basic block to start insertion into.
-  llvm::BasicBlock* BB = llvm::BasicBlock::Create(*l.ctx, st->identifier, F);
-  l.builder->SetInsertPoint(BB);
 
   v.visit(st->body);
-  if (r.value) {
-    l.builder->CreateRet(r.value);
-    verifyFunction(*F);
-  }
+  if (llvm::verifyFunction(*F, &llvm::errs())) abortMsg("verify error");
   // F->eraseFromParent();
 }
 void CodeGenVisitor::visit(BlockStmt* st) {
   for (auto d : st->decls) visit(d);
 }
-void CodeGenVisitor::visit(IfStmt* st) { unimplemented(); }
+void CodeGenVisitor::visit(IfStmt* st) {
+  CodeGenExprVisitor v(scope, l);
+  v.visit(st->condition);
+  llvm::Value* condV = v.getValue();
+  if (!condV) abortMsg("failed to generate condition");
+
+  // Convert condition to a bool by comparing non-equal to 0.0.
+  condV = l.isTruthy(condV);
+  llvm::Function* fun = l.builder->GetInsertBlock()->getParent();
+
+  // Create blocks for the then and else cases.  Insert the 'then' block at the
+  // end of the function.
+  llvm::BasicBlock* thenBB = llvm::BasicBlock::Create(*l.ctx, "then", fun);
+  llvm::BasicBlock* elseBB = llvm::BasicBlock::Create(*l.ctx, "else");
+  llvm::BasicBlock* mergeBB = llvm::BasicBlock::Create(*l.ctx, "ifcont");
+
+  l.builder->CreateCondBr(condV, thenBB, elseBB);
+  // Emit then value.
+  l.builder->SetInsertPoint(thenBB);
+
+  auto v1 = wrap();
+  v1.visit(st->true_branch);
+
+  l.builder->CreateBr(mergeBB);
+  // Codegen of 'Then' can change the current block, update ThenBB for the PHI.
+  thenBB = l.builder->GetInsertBlock();
+
+  // Emit else block.
+  fun->getBasicBlockList().push_back(elseBB);
+  l.builder->SetInsertPoint(elseBB);
+
+  auto v2 = wrap();
+  v2.visit(st->false_branch);
+
+  l.builder->CreateBr(mergeBB);
+  // codegen of 'Else' can change the current block, update ElseBB for the PHI.
+  elseBB = l.builder->GetInsertBlock();
+
+  // Emit merge block.
+  fun->getBasicBlockList().push_back(mergeBB);
+  l.builder->SetInsertPoint(mergeBB);
+}
 void CodeGenVisitor::visit(WhileStmt* st) { unimplemented(); }
 void CodeGenVisitor::visit(BreakStmt* st) { unimplemented(); }
 void CodeGenVisitor::visit(ReturnStmt* st) {
   CodeGenExprVisitor v(scope, l);
   v.visit(st->expr);
-  scope.setReason({ReturnReason::NORMAL, v.getValue()});
+  auto val =
+      l.convertTo(v.getValue(), scope.getTrace().llvmFun->getReturnType());
+  l.builder->CreateRet(val);
 }

@@ -23,4 +23,9 @@ struct llvmWrapper {
     builder = std::make_shared<llvm::IRBuilder<>>(*ctx);
   };
   llvm::Type* getType(Type t);
+  llvm::Value* isTruthy(llvm::Value*);
+  llvm::Value* convertTo(llvm::Value*, llvm::Type*);
+  llvm::AllocaInst* createEntryBlockAlloca(llvm::Function* fun,
+                                           llvm::Type* type,
+                                           const std::string& name);
 };

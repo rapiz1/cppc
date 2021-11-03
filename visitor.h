@@ -56,13 +56,6 @@ class ExprVisitor {
   virtual void visit(Call* expr) = 0;
 };
 
-/*
-struct TypedValue {
-  Type type;
-  llvm::Value* value;
-};
-*/
-
 class CodeGenExprVisitor : public ExprVisitor {
   Scope scope;
   llvmWrapper l;
@@ -70,7 +63,6 @@ class CodeGenExprVisitor : public ExprVisitor {
 
  public:
   CodeGenExprVisitor(Scope scope, llvmWrapper l) : scope(scope), l(l){};
-  // CodeGenExprVisitor wrap();
   void visit(Expr* expr) override;
   void visit(Literal* expr) override;
   void visit(Integer* expr) override;
@@ -90,7 +82,7 @@ class CodeGenVisitor : public DeclVisitor {
  public:
   CodeGenVisitor(Scope scope, llvmWrapper l) : scope(scope), l(l){};
   CodeGenVisitor wrap();
-  CodeGenVisitor wrapWithReason(ReturnResult* r);
+  CodeGenVisitor wrapWithTrace(Trace* r);
   virtual void visit(Declaration* d) override;
 
   virtual void visit(ExprStmt* st) override;

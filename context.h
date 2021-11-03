@@ -7,30 +7,31 @@
 #include "llvm.h"
 #include "type.h"
 
+class FunDecl;
 struct Record {
   std::string id;
   Type type;
-  llvm::Argument* arg;
+  llvm::AllocaInst* addr;
 };
 
 class Literal;
-enum class ReturnReason { NORMAL, RETURN, BREAK, CONTINUE };
-struct ReturnResult {
-  ReturnReason reason;
-  llvm::Value* value;
+struct Trace {
+  llvm::Function *llvmFun;
+  FunDecl* fun;
+  llvm::BasicBlock* endB;
 };
 class Scope {
   Scope* parent;
   typedef std::map<std::string, Record> VarRec;
   std::shared_ptr<VarRec> varRec;
-  ReturnResult* reason;
+  Trace* trace;
 
   bool localCount(std::string);
   void setOrCreateVar(std::string, Record r);
 
  public:
-  Scope(Scope* parent = nullptr, ReturnResult* reason = nullptr)
-      : parent(parent), reason(reason) {
+  Scope(Scope* parent = nullptr, Trace* trace = nullptr)
+      : parent(parent), trace(trace) {
     varRec = std::make_shared<VarRec>();
   }
 
@@ -40,11 +41,11 @@ class Scope {
   void set(std::string, Record r);
   Record get(std::string);
 
-  void setReason(ReturnResult r);
-  ReturnResult getReason();
+  void setTrace(Trace r);
+  Trace getTrace();
 
   bool isWrapped() const { return parent; }
 
-  Scope wrap() { return Scope(this, reason); }
-  Scope wrapWithReason(ReturnResult* reason) { return Scope(this, reason); };
+  Scope wrap() { return Scope(this, trace); }
+  Scope wrapWithTrace(Trace* t) { return Scope(this, t); };
 };
