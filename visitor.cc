@@ -46,28 +46,31 @@ void CodeGenExprVisitor::visit(Binary* expr) {
   bool hasDouble = false;
   bool hasInteger = false;
 
-  if (lhs) {
-    hasDouble = lhs->getType()->isDoubleTy() || rhs->getType()->isDoubleTy();
-    hasInteger = lhs->getType()->isIntegerTy() || rhs->getType()->isIntegerTy();
-  }
-  if (hasDouble) {
-    if (!lhs->getType()->isDoubleTy())
-      lhs = l.builder->CreateFPCast(lhs, llvm::Type::getDoubleTy(*l.ctx),
-                                    "casttmp");
-    if (!rhs->getType()->isDoubleTy())
-      rhs = l.builder->CreateFPCast(rhs, llvm::Type::getDoubleTy(*l.ctx),
-                                    "casttmp");
-  } else if (hasInteger) {  // integer upgrade
-    unsigned int maxw = 0;
-    if (lhs->getType()->isIntegerTy())
-      maxw = std::max(maxw, lhs->getType()->getIntegerBitWidth());
-    if (rhs->getType()->isIntegerTy())
-      maxw = std::max(maxw, rhs->getType()->getIntegerBitWidth());
-    auto upgradeType = llvm::IntegerType::get(*l.ctx, maxw);
-    if (lhs->getType() != upgradeType)
-      lhs = l.builder->CreateIntCast(lhs, upgradeType, true, "casttmp");
-    if (rhs->getType() != upgradeType)
-      rhs = l.builder->CreateIntCast(rhs, upgradeType, true, "casttmp");
+  if (op != EQUAL) {
+    if (lhs) {
+      hasDouble = lhs->getType()->isDoubleTy() || rhs->getType()->isDoubleTy();
+      hasInteger =
+          lhs->getType()->isIntegerTy() || rhs->getType()->isIntegerTy();
+    }
+    if (hasDouble) {
+      if (!lhs->getType()->isDoubleTy())
+        lhs = l.builder->CreateFPCast(lhs, llvm::Type::getDoubleTy(*l.ctx),
+                                      "casttmp");
+      if (!rhs->getType()->isDoubleTy())
+        rhs = l.builder->CreateFPCast(rhs, llvm::Type::getDoubleTy(*l.ctx),
+                                      "casttmp");
+    } else if (hasInteger) {  // integer upgrade
+      unsigned int maxw = 0;
+      if (lhs->getType()->isIntegerTy())
+        maxw = std::max(maxw, lhs->getType()->getIntegerBitWidth());
+      if (rhs->getType()->isIntegerTy())
+        maxw = std::max(maxw, rhs->getType()->getIntegerBitWidth());
+      auto upgradeType = llvm::IntegerType::get(*l.ctx, maxw);
+      if (lhs->getType() != upgradeType)
+        lhs = l.builder->CreateIntCast(lhs, upgradeType, true, "casttmp");
+      if (rhs->getType() != upgradeType)
+        rhs = l.builder->CreateIntCast(rhs, upgradeType, true, "casttmp");
+    }
   }
   switch (op) {
     case PLUS:
