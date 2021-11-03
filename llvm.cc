@@ -6,6 +6,7 @@ llvm::Type* llvmWrapper::getBool() { return llvm::Type::getInt1Ty(*ctx); }
 llvm::Type* llvmWrapper::getInt() { return llvm::Type::getInt32Ty(*ctx); }
 llvm::Type* llvmWrapper::getChar() { return llvm::Type::getInt8Ty(*ctx); }
 llvm::Type* llvmWrapper::getDouble() { return llvm::Type::getDoubleTy(*ctx); }
+llvm::Type* llvmWrapper::getVoid() { return llvm::Type::getVoidTy(*ctx); }
 
 llvm::Type* llvmWrapper::getType(Type type) {
   auto baseType = getBaseType(type);
@@ -31,6 +32,8 @@ llvm::Type* llvmWrapper::getBaseType(Type type) {
     case Type::Base::CHAR:
       return getChar();
       break;
+    case Type::Base::VOID:
+      return getVoid();
     default:
       abortMsg("Unrecognize type");
   }

@@ -478,7 +478,11 @@ void CodeGenVisitor::visit(ReturnStmt* st) {
   terminate = true;
 
   CodeGenExprVisitor v(scope, l);
-  v.visit(st->expr);
-  auto val = l.implictConvert(v.getValue(), t.llvmFun->getReturnType());
-  l.builder->CreateRet(val);
+  if (st->expr) {
+    v.visit(st->expr);
+    auto val = l.implictConvert(v.getValue(), t.llvmFun->getReturnType());
+    l.builder->CreateRet(val);
+  } else {
+    l.builder->CreateRetVoid();
+  }
 }

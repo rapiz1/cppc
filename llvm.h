@@ -26,6 +26,7 @@ struct llvmWrapper {
   llvm::Type* getInt();
   llvm::Type* getChar();
   llvm::Type* getDouble();
+  llvm::Type* getVoid();
   llvm::Type* getType(Type t);
   llvm::Type* getBaseType(Type t);
   llvm::Value* convertToTruthy(llvm::Value*);

@@ -62,6 +62,7 @@ enum TokenType {
   FLOAT,
   CHAR,
   BOOL,
+  VOID,
   WHILE,
   ASSERT,
 

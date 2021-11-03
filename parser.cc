@@ -72,6 +72,7 @@ Declaration* Parser::decl() {
     case FLOAT:
     case CHAR:
     case BOOL:
+    case VOID:
       var = typedVar();
       if (match(1, LEFT_PAREN))
         d = funDecl(var.type, var.id);
@@ -258,6 +259,9 @@ TypedVar Parser::typedVar() {
       break;
     case BOOL:
       base = Type::Base::BOOL;
+      break;
+    case VOID:
+      base = Type::Base::VOID;
       break;
     default:
       std::cerr << "Unexpected type " << peek().lexeme << std::endl;
