@@ -26,7 +26,6 @@ int run(const string& s) {
     cout << endl;
   }
   if (options->printIR()) l.mod->print(llvm::outs(), nullptr);
-  l.mod->print(llvm::errs(), nullptr);
   compile(v);
   return 0;
 }
