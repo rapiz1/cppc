@@ -3,6 +3,7 @@
 #include <string>
 
 #include "cmdargs.h"
+#include "object.h"
 #include "parser.h"
 #include "scanner.h"
 
@@ -25,6 +26,8 @@ int run(const string& s) {
     cout << endl;
   }
   if (options->printIR()) l.mod->print(llvm::outs(), nullptr);
+  l.mod->print(llvm::errs(), nullptr);
+  compile(v);
   return 0;
 }
 

@@ -98,6 +98,8 @@ class CodeGenVisitor : public DeclVisitor {
       : scope(scope), l(l), terminate(false){};
   CodeGenVisitor wrap();
   CodeGenVisitor wrapWithTrace(Trace* r);
+  auto getMod() { return l.mod; }
+  auto getCtx() { return l.ctx; }
   virtual void visit(Declaration* d) override;
 
   virtual void visit(ExprStmt* st) override;

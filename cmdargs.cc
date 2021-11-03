@@ -4,7 +4,7 @@
 #include <iostream>
 #include <string>
 
-const std::string usage = "Usage: clox [script]\n";
+const std::string usage = "Usage: clox [source]\n";
 
 CmdArgs::CmdArgs(int argc, char** argv) {
   lexOutput = false;
