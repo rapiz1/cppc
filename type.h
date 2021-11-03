@@ -9,4 +9,5 @@ struct Type {
     return base == rhs.base && arraySize == rhs.arraySize &&
            isArray == rhs.isArray;
   }
+  operator std::string();
 };
