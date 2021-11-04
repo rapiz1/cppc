@@ -3,3 +3,7 @@
 bin
 clox
 token_convert.h
+output.png
+output.dot
+output.o
+a.out
