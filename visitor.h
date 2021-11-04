@@ -21,8 +21,6 @@ class VarDecl;
 class FunDecl;
 
 class Statement;
-class AssertStmt;
-class PrintStmt;
 class ExprStmt;
 class BlockStmt;
 class IfStmt;
@@ -36,8 +34,6 @@ class DeclVisitor {
   virtual void visit(Declaration* d) = 0;
 
   virtual void visit(ExprStmt* st) = 0;
-  virtual void visit(AssertStmt* st) = 0;
-  virtual void visit(PrintStmt* st) = 0;
   virtual void visit(VarDecl* d) = 0;
   virtual void visit(FunDecl* d) = 0;
   virtual void visit(BlockStmt* d) = 0;
@@ -116,8 +112,6 @@ class CodeGenVisitor : public DeclVisitor {
   virtual void visit(Declaration* d) override;
 
   virtual void visit(ExprStmt* st) override;
-  virtual void visit(AssertStmt* st) override;
-  virtual void visit(PrintStmt* st) override;
   virtual void visit(VarDecl* d) override;
   virtual void visit(FunDecl* d) override;
   virtual void visit(BlockStmt* d) override;

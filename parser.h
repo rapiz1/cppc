@@ -21,8 +21,8 @@ class Parser {
   Declaration* decl();       // STMT | VAR_DECL
   Statement* stmt();         // PRINT_STMT | BLOCK_STMT | EXPR_STMT | IF_STMT |
                              // FOR_STMT | WHILE_STMT | ASSERT_STMT
-  AssertStmt* assertStmt();  // ASSERT EXPR ; TODO: unimplemented
-  PrintStmt* printStmt();    // PRINT EXPRESSION ; TODO: unimplemented
+  Statement* assertStmt();   // ASSERT EXPR ; // deprecated
+  Statement* printStmt();    // PRINT EXPRESSION ; // deprecated
   BlockStmt* blockStmt();    // '{' PROGRAM '}';
   ExprStmt* exprStmt();      // EXPRESSION ;
   IfStmt* ifStmt();          // IF EXPRESSION STMT (ELSE STMT)?

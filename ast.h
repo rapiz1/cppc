@@ -35,32 +35,6 @@ class ExprStmt : public Statement {
   friend class CodeGenVisitor;
 };
 
-class PrintStmt : public Statement {
- protected:
-  Expr* expr;
-
- public:
-  PrintStmt(Expr* expr) : expr(expr){};
-  operator std::string() override { return "print " + std::string(*expr); };
-
-  void accept(DeclVisitor* v) override { v->visit(this); }
-  friend class PrintVisitor;
-  friend class CodeGenVisitor;
-};
-
-class AssertStmt : public Statement {
- protected:
-  Expr* expr;
-
- public:
-  AssertStmt(Expr* expr) : expr(expr){};
-  operator std::string() override { return "assert " + std::string(*expr); };
-
-  void accept(DeclVisitor* v) override { v->visit(this); }
-  friend class PrintVisitor;
-  friend class CodeGenVisitor;
-};
-
 typedef std::vector<Declaration*> Program;
 class BlockStmt : public Statement {
  protected:

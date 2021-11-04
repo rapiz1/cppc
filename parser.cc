@@ -6,6 +6,8 @@
 #include <sstream>
 #include <stack>
 
+#include "log.h"
+
 void Parser::checkEof() {
   if (eof()) {
     std::cerr << "Unexpected eof\n";
@@ -114,9 +116,7 @@ Statement* Parser::stmt() {
       s = returnStmt();
       break;
     case ASSERT:
-      advance();
-      s = new AssertStmt(expression());
-      consume(SEMICOLON, "Expect `;` after assert");
+      s = assertStmt();
       break;
     default:
       s = exprStmt();
@@ -229,13 +229,14 @@ BlockStmt* Parser::forStmt() {
   return f;
 }
 
-PrintStmt* Parser::printStmt() {
-  consume(PRINT, "Expect keyword `print`");
-  PrintStmt* s = new PrintStmt(expression());
+Statement* Parser::printStmt() {
+  abortMsg("print statement is deprecated");
+  return nullptr;
+}
 
-  consume(SEMICOLON, "Expect `;` at the end of a print statement");
-  assert(s);
-  return s;
+Statement* Parser::assertStmt() {
+  abortMsg("assert statement is deprecated");
+  return nullptr;
 }
 
 ExprStmt* Parser::exprStmt() {

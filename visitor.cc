@@ -311,16 +311,6 @@ void CodeGenVisitor::visit(ExprStmt* st) {
   CodeGenExprVisitor v(scope, l);
   v.visit(st->expr);
 }
-void CodeGenVisitor::visit(AssertStmt* st) {
-  CodeGenExprVisitor v(scope, l);
-  v.visit(st->expr);
-  // FIXME:
-}
-void CodeGenVisitor::visit(PrintStmt* st) {
-  CodeGenExprVisitor v(scope, l);
-  v.visit(st->expr);
-  // FIXME:
-}
 void CodeGenVisitor::visit(VarDecl* st) {
   auto type = l.getType(st->type);
 
