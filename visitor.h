@@ -69,6 +69,8 @@ class CodeGenExprVisitor : public ExprVisitor {
   llvmWrapper l;
   llvm::Value* value = nullptr;
   llvm::AllocaInst* addr = nullptr;
+  Type type;  // only used for array. other type information is passed by
+              // llvm::Value*
 
  public:
   CodeGenExprVisitor(Scope scope, llvmWrapper l) : scope(scope), l(l){};
@@ -86,6 +88,8 @@ class CodeGenExprVisitor : public ExprVisitor {
   void visit(Call* expr) override;
   void visit(Index* expr) override;
 
+  Type getType() { return type; }
+  void setType(Type t) { type = t; }
   void setValue(llvm::Value* v) { value = v; }
   void setAddr(llvm::AllocaInst* a) { addr = a; }
   void setTuple(llvm::Value* v, llvm::AllocaInst* a = nullptr) {

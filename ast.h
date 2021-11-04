@@ -190,10 +190,10 @@ class Call : public Expr {
 
 class Index : public Expr {
   Expr* base;
-  Expr* idx;
+  std::vector<Expr*> idxs;
 
  public:
-  Index(Expr* base, Expr* idx) : base(base), idx(idx){};
+  Index(Expr* base, std::vector<Expr*> idxs) : base(base), idxs(idxs){};
   operator std::string() override { return "index " + std::string(*base); };
   bool isLval() const override { return true; }
 

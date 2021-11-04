@@ -273,14 +273,28 @@ TypedVar Parser::typedVar() {
   Token id = consume(IDENTIFIER, "Expect an identifer for variable");
   Type type = {base};
 
-  if (match(1, LEFT_SQUARE)) {
+  while (match(1, LEFT_SQUARE)) {
     // parse array type
     advance();
     auto num = consume(NUMBER, "Expect a number literal for array size");
+
+    int dim = 0;
     std::stringstream ss(num.lexeme);
-    ss >> type.arraySize;
+    ss >> dim;
+    if (dim <= 0) {
+      std::cerr << "Invalid size of array at line " << num.line << std::endl;
+      exit(-1);
+    }
+
+    type.dims.push_back(dim);
+
     type.isArray = true;
     consume(RIGHT_SQUARE, "Expect `]` affter array size");
+  }
+
+  if (type.isArray) {
+    type.arraySize = 1;
+    for (auto x : type.dims) type.arraySize *= x;
   }
 
   return {type, id};
@@ -465,12 +479,13 @@ Expr* Parser::call() {
 
 Expr* Parser::index() {
   Expr* e = primary();
-  if (match(1, LEFT_SQUARE)) {
+  std::vector<Expr*> idxs;
+  while (match(1, LEFT_SQUARE)) {
     advance();
-    auto i = expression();
-    e = new Index(e, i);
+    idxs.push_back(expression());
     consume(RIGHT_SQUARE, "Expect `]` after indexing");
   }
+  if (!idxs.empty()) e = new Index(e, idxs);
   return e;
 }
 

@@ -247,15 +247,28 @@ void CodeGenExprVisitor::visit(Variable* expr) {
     addr = r.addr;
     value = l.builder->CreateLoad(l.getType(r.type), r.addr, r.id.c_str());
   }
+  type = r.type;
 }
 void CodeGenExprVisitor::visit(Index* expr) {
   CodeGenExprVisitor ev(scope, l);
   ev.visit(expr->base);
+  Type type = ev.getType();
   CodeGenExprVisitor ev2(scope, l);
-  ev2.visit(expr->idx);
-  auto idx = ev2.getValue();
+  llvm::Value* offset =
+      llvm::Constant::getIntegerValue(l.getInt(), llvm::APInt(32, 0));
+  if (expr->idxs.size() != type.dims.size()) abortMsg("invalid array index");
+  for (size_t i = 0; i < expr->idxs.size(); i++) {
+    int factor = 1;
+    for (size_t j = i + 1; j < type.dims.size(); j++) factor *= type.dims[j];
+
+    ev2.visit(expr->idxs[i]);
+    auto factorValue =
+        llvm::Constant::getIntegerValue(l.getInt(), llvm::APInt(32, factor));
+    auto part_offset = l.builder->CreateMul(ev2.getValue(), factorValue);
+    offset = l.builder->CreateAdd(offset, part_offset);
+  }
   auto base = ev.getValue();
-  auto ptr = l.builder->CreateGEP(base, idx);
+  auto ptr = l.builder->CreateGEP(base, offset);
   value = l.builder->CreateLoad(ptr);
   addr = static_cast<llvm::AllocaInst*>(ptr);
 }
