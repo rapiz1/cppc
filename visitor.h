@@ -109,14 +109,14 @@ class CodeGenVisitor : public DeclVisitor {
   CodeGenVisitor wrapWithTrace(Trace* r);
   auto getMod() { return l.mod; }
   auto getCtx() { return l.ctx; }
-  virtual void visit(Declaration* d) override;
+  void visit(Declaration* d) override;
 
-  virtual void visit(ExprStmt* st) override;
-  virtual void visit(VarDecl* d) override;
-  virtual void visit(FunDecl* d) override;
-  virtual void visit(BlockStmt* d) override;
-  virtual void visit(IfStmt* d) override;
-  virtual void visit(WhileStmt* d) override;
-  virtual void visit(BreakStmt* d) override;
-  virtual void visit(ReturnStmt* d) override;
+  void visit(ExprStmt* st) override;
+  void visit(VarDecl* d) override;
+  void visit(FunDecl* d) override;
+  void visit(BlockStmt* d) override;
+  void visit(IfStmt* d) override;
+  void visit(WhileStmt* d) override;
+  void visit(BreakStmt* d) override;
+  void visit(ReturnStmt* d) override;
 };
