@@ -29,21 +29,9 @@ class WhileStmt;
 class BreakStmt;
 class ReturnStmt;
 
-class DeclVisitor {
- public:
-  virtual void visit(Declaration* d) = 0;
+typedef std::vector<Declaration*> Program;
 
-  virtual void visit(ExprStmt* st) = 0;
-  virtual void visit(VarDecl* d) = 0;
-  virtual void visit(FunDecl* d) = 0;
-  virtual void visit(BlockStmt* d) = 0;
-  virtual void visit(IfStmt* d) = 0;
-  virtual void visit(WhileStmt* d) = 0;
-  virtual void visit(BreakStmt* d) = 0;
-  virtual void visit(ReturnStmt* d) = 0;
-};
-
-class ExprVisitor {
+class AstVisitor {
  public:
   virtual void visit(Expr* expr) = 0;
   virtual void visit(Literal* expr) = 0;
@@ -58,18 +46,51 @@ class ExprVisitor {
   virtual void visit(Variable* expr) = 0;
   virtual void visit(Call* expr) = 0;
   virtual void visit(Index* expr) = 0;
+
+  virtual void visit(Declaration* d) = 0;
+  virtual void visit(ExprStmt* st) = 0;
+  virtual void visit(VarDecl* d) = 0;
+  virtual void visit(FunDecl* d) = 0;
+  virtual void visit(BlockStmt* d) = 0;
+  virtual void visit(IfStmt* d) = 0;
+  virtual void visit(WhileStmt* d) = 0;
+  virtual void visit(BreakStmt* d) = 0;
+  virtual void visit(ReturnStmt* d) = 0;
 };
 
-class CodeGenExprVisitor : public ExprVisitor {
+class CodeGenVisitor : public AstVisitor {
   Scope scope;
   llvmWrapper l;
   llvm::Value* value = nullptr;
   llvm::AllocaInst* addr = nullptr;
-  Type type;  // only used for array. other type information is passed by
-              // llvm::Value*
+  Type type = {};  // only used for array. other type information is passed by
+                   // llvm::Value*
+  bool terminate = false;
 
  public:
-  CodeGenExprVisitor(Scope scope, llvmWrapper l) : scope(scope), l(l){};
+  CodeGenVisitor(Scope scope, llvmWrapper l) : scope(scope), l(l) {
+    value = nullptr;
+    addr = nullptr;
+    type = {};
+    terminate = false;
+  };
+
+  CodeGenVisitor wrap();
+  CodeGenVisitor wrapWithTrace(Trace* r);
+
+  auto getMod() { return l.mod; }
+  auto getCtx() { return l.ctx; }
+  void visit(Declaration* d) override;
+
+  void visit(ExprStmt* st) override;
+  void visit(VarDecl* d) override;
+  void visit(FunDecl* d) override;
+  void visit(BlockStmt* d) override;
+  void visit(IfStmt* d) override;
+  void visit(WhileStmt* d) override;
+  void visit(BreakStmt* d) override;
+  void visit(ReturnStmt* d) override;
+
   void visit(Expr* expr) override;
   void visit(Literal* expr) override;
   void visit(Integer* expr) override;
@@ -97,18 +118,19 @@ class CodeGenExprVisitor : public ExprVisitor {
   llvm::AllocaInst* getAddr() { return addr; }
 };
 
-class CodeGenVisitor : public DeclVisitor {
-  Scope scope;
-  llvmWrapper l;
-  bool terminate;
+class GraphGenVisitor : public AstVisitor {
+  std::string content;
+  int nodeNum;
+  int rootNode;
+
+  std::string getTagName(int id) const;
+
+  int addNode(std::string desc);
+  void addTo(int x, int y);
 
  public:
-  CodeGenVisitor(Scope scope, llvmWrapper l)
-      : scope(scope), l(l), terminate(false){};
-  CodeGenVisitor wrap();
-  CodeGenVisitor wrapWithTrace(Trace* r);
-  auto getMod() { return l.mod; }
-  auto getCtx() { return l.ctx; }
+  void output() const;
+  void visitProgram(const Program& prog);
   void visit(Declaration* d) override;
 
   void visit(ExprStmt* st) override;
@@ -119,4 +141,18 @@ class CodeGenVisitor : public DeclVisitor {
   void visit(WhileStmt* d) override;
   void visit(BreakStmt* d) override;
   void visit(ReturnStmt* d) override;
+
+  void visit(Expr* expr) override;
+  void visit(Literal* expr) override;
+  void visit(Integer* expr) override;
+  void visit(Double* expr) override;
+  void visit(Boolean* expr) override;
+  void visit(Char* expr) override;
+  void visit(String* expr) override;
+  void visit(Binary* expr) override;
+  void visit(Unary* expr) override;
+  void visit(Postfix* expr) override;
+  void visit(Variable* expr) override;
+  void visit(Call* expr) override;
+  void visit(Index* expr) override;
 };

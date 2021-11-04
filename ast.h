@@ -7,18 +7,18 @@
 #include "type.h"
 #include "visitor.h"
 
-class Expr {
+class AstNode {
  public:
   virtual operator std::string() = 0;
-  virtual void accept(ExprVisitor* v) = 0;
+  virtual void accept(AstVisitor* v) = 0;
+};
+
+class Expr : public AstNode {
+ public:
   virtual bool isLval() const = 0;
 };
 
-class Declaration {
- public:
-  virtual operator std::string() = 0;
-  virtual void accept(DeclVisitor* v) = 0;
-};
+class Declaration : public AstNode {};
 
 class Statement : public Declaration {};
 
@@ -30,7 +30,7 @@ class ExprStmt : public Statement {
   operator std::string() override { return std::string(*expr); };
   Expr* getExpr() const { return expr; }
 
-  void accept(DeclVisitor* v) override { v->visit(this); }
+  void accept(AstVisitor* v) override { v->visit(this); }
   friend class PrintVisitor;
   friend class CodeGenVisitor;
 };
@@ -49,7 +49,7 @@ class BlockStmt : public Statement {
   }
   Program getProgram() const { return decls; }
 
-  void accept(DeclVisitor* v) override { v->visit(this); }
+  void accept(AstVisitor* v) override { v->visit(this); }
   friend class PrintVisitor;
   friend class CodeGenVisitor;
 };
@@ -70,7 +70,7 @@ class IfStmt : public Statement {
   Statement* getFalse() const { return false_branch; };
   operator std::string() override { return "ifstmt"; };
 
-  void accept(DeclVisitor* v) override { v->visit(this); }
+  void accept(AstVisitor* v) override { v->visit(this); }
   friend class PrintVisitor;
   friend class CodeGenVisitor;
 };
@@ -87,7 +87,7 @@ class WhileStmt : public Statement {
   Statement* getBody() const { return body; };
   operator std::string() override { return "whilestmt"; };
 
-  void accept(DeclVisitor* v) override { v->visit(this); }
+  void accept(AstVisitor* v) override { v->visit(this); }
   friend class PrintVisitor;
   friend class CodeGenVisitor;
 };
@@ -96,7 +96,7 @@ class BreakStmt : public Statement {
  public:
   operator std::string() override { return "break"; };
 
-  void accept(DeclVisitor* v) override { v->visit(this); }
+  void accept(AstVisitor* v) override { v->visit(this); }
   friend class PrintVisitor;
   friend class CodeGenVisitor;
 };
@@ -110,7 +110,7 @@ class ReturnStmt : public Statement {
 
   operator std::string() override { return "return" + std::string(*expr); };
 
-  void accept(DeclVisitor* v) override { v->visit(this); }
+  void accept(AstVisitor* v) override { v->visit(this); }
   friend class PrintVisitor;
   friend class CodeGenVisitor;
 };
@@ -131,7 +131,7 @@ class VarDecl : public Declaration {
     return "var " + identifier + " = " + std::string(*init);
   };
 
-  void accept(DeclVisitor* v) override { v->visit(this); }
+  void accept(AstVisitor* v) override { v->visit(this); }
   friend class PrintVisitor;
   friend class CodeGenVisitor;
 };
@@ -154,7 +154,7 @@ class FunDecl : public Declaration {
   Args getArgs() const { return args; };
   BlockStmt* getBody() const { return body; };
 
-  void accept(DeclVisitor* v) override { v->visit(this); }
+  void accept(AstVisitor* v) override { v->visit(this); }
   friend class PrintVisitor;
   friend class CodeGenVisitor;
 };
@@ -171,8 +171,8 @@ class Call : public Expr {
   operator std::string() override { return "call " + std::string(*callee); };
   bool isLval() const override { return false; }
 
-  void accept(ExprVisitor* v) override { v->visit(this); }
-  friend class CodeGenExprVisitor;
+  void accept(AstVisitor* v) override { v->visit(this); }
+  friend class CodeGenVisitor;
 };
 
 class Index : public Expr {
@@ -186,8 +186,8 @@ class Index : public Expr {
   operator std::string() override { return "index " + std::string(*base); };
   bool isLval() const override { return true; }
 
-  void accept(ExprVisitor* v) override { v->visit(this); }
-  friend class CodeGenExprVisitor;
+  void accept(AstVisitor* v) override { v->visit(this); }
+  friend class CodeGenVisitor;
 };
 
 class Binary : public Expr {
@@ -205,8 +205,8 @@ class Binary : public Expr {
   operator std::string() override;
   bool isLval() const override { return false; }
 
-  void accept(ExprVisitor* v) override { v->visit(this); }
-  friend class CodeGenExprVisitor;
+  void accept(AstVisitor* v) override { v->visit(this); }
+  friend class CodeGenVisitor;
 };
 
 class Unary : public Expr {
@@ -221,8 +221,8 @@ class Unary : public Expr {
   operator std::string() override;
   bool isLval() const override { return false; }
 
-  void accept(ExprVisitor* v) override { v->visit(this); }
-  friend class CodeGenExprVisitor;
+  void accept(AstVisitor* v) override { v->visit(this); }
+  friend class CodeGenVisitor;
 };
 
 class Postfix : public Expr {
@@ -237,8 +237,8 @@ class Postfix : public Expr {
   operator std::string() override { return "postfix " + op.lexeme; };
   bool isLval() const override { return false; }
 
-  void accept(ExprVisitor* v) override { v->visit(this); }
-  friend class CodeGenExprVisitor;
+  void accept(AstVisitor* v) override { v->visit(this); }
+  friend class CodeGenVisitor;
 };
 
 class Literal : public Expr {
@@ -256,8 +256,8 @@ class Integer : public Literal {
   int getValue() const { return value; };
   operator std::string() override;
 
-  void accept(ExprVisitor* v) override { v->visit(this); }
-  friend class CodeGenExprVisitor;
+  void accept(AstVisitor* v) override { v->visit(this); }
+  friend class CodeGenVisitor;
 };
 
 class Double : public Literal {
@@ -270,8 +270,8 @@ class Double : public Literal {
   double getValue() const { return value; }
   operator std::string() override;
 
-  void accept(ExprVisitor* v) override { v->visit(this); }
-  friend class CodeGenExprVisitor;
+  void accept(AstVisitor* v) override { v->visit(this); }
+  friend class CodeGenVisitor;
 };
 
 class String : public Literal {
@@ -284,8 +284,7 @@ class String : public Literal {
   std::string getValue() const { return value; };
   operator std::string() override;
 
-  void accept(ExprVisitor* v) override { v->visit(this); }
-  friend class CodeGenExprVisitor;
+  void accept(AstVisitor* v) override { v->visit(this); }
   friend class CodeGenVisitor;
 };
 
@@ -299,8 +298,8 @@ class Char : public Literal {
   char getValue() const { return value; };
   operator std::string() override;
 
-  void accept(ExprVisitor* v) override { v->visit(this); }
-  friend class CodeGenExprVisitor;
+  void accept(AstVisitor* v) override { v->visit(this); }
+  friend class CodeGenVisitor;
 };
 
 class Boolean : public Literal {
@@ -313,8 +312,8 @@ class Boolean : public Literal {
   bool getValue() const { return value; }
   operator std::string() override;
 
-  void accept(ExprVisitor* v) override { v->visit(this); }
-  friend class CodeGenExprVisitor;
+  void accept(AstVisitor* v) override { v->visit(this); }
+  friend class CodeGenVisitor;
 };
 
 class Function : public Literal {
@@ -326,8 +325,8 @@ class Function : public Literal {
   FunDecl* getFun() const { return fun; };
   operator std::string() override { return std::string(*fun); };
 
-  void accept(ExprVisitor* v) override { v->visit(this); }
-  friend class CodeGenExprVisitor;
+  void accept(AstVisitor* v) override { v->visit(this); }
+  friend class CodeGenVisitor;
 };
 
 class Variable : public Expr {
@@ -342,7 +341,7 @@ class Variable : public Expr {
 
   operator std::string() override { return name; };
 
-  void accept(ExprVisitor* v) override { v->visit(this); };
-  friend class CodeGenExprVisitor;
+  void accept(AstVisitor* v) override { v->visit(this); };
+  friend class CodeGenVisitor;
 };
 #endif

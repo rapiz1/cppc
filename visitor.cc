@@ -1,6 +1,8 @@
 #include "visitor.h"
 
+#include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 
 #include "ast.h"
@@ -14,30 +16,30 @@ CodeGenVisitor CodeGenVisitor::wrapWithTrace(Trace* r) {
   return CodeGenVisitor(scope.wrapWithTrace(r), l);
 }
 
-void CodeGenExprVisitor::visit(Expr* expr) { expr->accept(this); }
+void CodeGenVisitor::visit(Expr* expr) { expr->accept(this); }
 
-void CodeGenExprVisitor::visit(Literal* expr) { expr->accept(this); }
+void CodeGenVisitor::visit(Literal* expr) { expr->accept(this); }
 
-void CodeGenExprVisitor::visit(Integer* expr) {
+void CodeGenVisitor::visit(Integer* expr) {
   setValue(llvm::ConstantInt::get(*l.ctx, llvm::APInt(32, expr->value)));
 }
 
-void CodeGenExprVisitor::visit(Double* expr) {
+void CodeGenVisitor::visit(Double* expr) {
   setValue(llvm::ConstantFP::get(*l.ctx, llvm::APFloat(expr->value)));
 }
-void CodeGenExprVisitor::visit(Boolean* expr) {
+void CodeGenVisitor::visit(Boolean* expr) {
   setValue(llvm::ConstantInt::get(*l.ctx, llvm::APInt(1, expr->value)));
 }
-void CodeGenExprVisitor::visit(Char* expr) {
+void CodeGenVisitor::visit(Char* expr) {
   setValue(llvm::ConstantInt::get(*l.ctx, llvm::APInt(8, expr->value)));
 }
 
-void CodeGenExprVisitor::visit(Binary* expr) {
-  CodeGenExprVisitor lv(scope, l);
+void CodeGenVisitor::visit(Binary* expr) {
+  CodeGenVisitor lv(scope, l);
   lv.visit(expr->left);
   auto lhs = lv.getValue();
 
-  CodeGenExprVisitor rv(scope, l);
+  CodeGenVisitor rv(scope, l);
   rv.visit(expr->right);
   auto rhs = rv.getValue();
 
@@ -172,7 +174,7 @@ void CodeGenExprVisitor::visit(Binary* expr) {
   }
 }
 
-void CodeGenExprVisitor::visit(Unary* expr) {
+void CodeGenVisitor::visit(Unary* expr) {
   visit(expr->child);
   auto op = expr->op.tokenType;
   if (op == BANG) {
@@ -202,7 +204,7 @@ void CodeGenExprVisitor::visit(Unary* expr) {
   }
 }
 
-void CodeGenExprVisitor::visit(Postfix* expr) {
+void CodeGenVisitor::visit(Postfix* expr) {
   visit(expr->child);
   if (!value->getType()->isIntegerTy())
     abortMsg("cant apply " + expr->op.lexeme + "to non integer");
@@ -223,7 +225,7 @@ void CodeGenExprVisitor::visit(Postfix* expr) {
   }
   l.builder->CreateStore(ret, addr);
 }
-void CodeGenExprVisitor::visit(String* expr) {
+void CodeGenVisitor::visit(String* expr) {
   auto s = expr->value;
   int size = s.size() + 1;
   addr = nullptr;
@@ -238,7 +240,7 @@ void CodeGenExprVisitor::visit(String* expr) {
         llvm::Constant::getIntegerValue(l.getChar(), llvm::APInt(8, c)), ptr);
   }
 }
-void CodeGenExprVisitor::visit(Variable* expr) {
+void CodeGenVisitor::visit(Variable* expr) {
   auto r = scope.get(expr->name);
   if (r.type.isArray) {
     addr = nullptr;  // an array is a lvalue
@@ -249,11 +251,11 @@ void CodeGenExprVisitor::visit(Variable* expr) {
   }
   type = r.type;
 }
-void CodeGenExprVisitor::visit(Index* expr) {
-  CodeGenExprVisitor ev(scope, l);
+void CodeGenVisitor::visit(Index* expr) {
+  CodeGenVisitor ev(scope, l);
   ev.visit(expr->base);
   Type type = ev.getType();
-  CodeGenExprVisitor ev2(scope, l);
+  CodeGenVisitor ev2(scope, l);
   llvm::Value* offset =
       llvm::Constant::getIntegerValue(l.getInt(), llvm::APInt(32, 0));
   if (expr->idxs.size() != type.dims.size()) abortMsg("invalid array index");
@@ -272,7 +274,7 @@ void CodeGenExprVisitor::visit(Index* expr) {
   value = l.builder->CreateLoad(ptr);
   addr = static_cast<llvm::AllocaInst*>(ptr);
 }
-void CodeGenExprVisitor::visit(Call* expr) {
+void CodeGenVisitor::visit(Call* expr) {
   // Look up the name in the global module table.
   auto funcName = dynamic_cast<Variable*>(expr->callee)->name;
   llvm::Function* fun = l.mod->getFunction(funcName);
@@ -284,7 +286,7 @@ void CodeGenExprVisitor::visit(Call* expr) {
 
   std::vector<llvm::Value*> args;
 
-  CodeGenExprVisitor v(scope, l);
+  CodeGenVisitor v(scope, l);
 
   size_t i = 0;
   for (auto a : expr->args) {
@@ -308,7 +310,7 @@ void CodeGenExprVisitor::visit(Call* expr) {
 
 void CodeGenVisitor::visit(Declaration* d) { d->accept(this); }
 void CodeGenVisitor::visit(ExprStmt* st) {
-  CodeGenExprVisitor v(scope, l);
+  CodeGenVisitor v(scope, l);
   v.visit(st->expr);
 }
 void CodeGenVisitor::visit(VarDecl* st) {
@@ -326,7 +328,7 @@ void CodeGenVisitor::visit(VarDecl* st) {
   if (st->init && st->type.isArray) {
     auto baseType = st->type.base;
     if (baseType == Type::Base::CHAR && dynamic_cast<String*>(st->init)) {
-      CodeGenExprVisitor ev(scope, l);
+      CodeGenVisitor ev(scope, l);
       ev.visit(st->init);
       addr = (llvm::AllocaInst*)ev.getValue();
     } else {
@@ -336,7 +338,7 @@ void CodeGenVisitor::visit(VarDecl* st) {
     addr = l.createEntryBlockAlloca(scope.getTrace().llvmFun, type,
                                     st->identifier, size);
     if (st->init) {
-      CodeGenExprVisitor ev(scope, l);
+      CodeGenVisitor ev(scope, l);
       ev.visit(st->init);
       auto val = ev.getValue();
       val = l.implictConvert(val, type);
@@ -417,7 +419,7 @@ void CodeGenVisitor::visit(BlockStmt* st) {
   }
 }
 void CodeGenVisitor::visit(IfStmt* st) {
-  CodeGenExprVisitor v(scope, l);
+  CodeGenVisitor v(scope, l);
   v.visit(st->condition);
   llvm::Value* condV = v.getValue();
   if (!condV) abortMsg("failed to generate condition");
@@ -468,7 +470,7 @@ void CodeGenVisitor::visit(WhileStmt* st) {
   l.builder->CreateBr(beginB);
 
   // emit the condittion
-  CodeGenExprVisitor v(scope, l);
+  CodeGenVisitor v(scope, l);
   l.builder->SetInsertPoint(beginB);
   v.visit(st->condition);
   l.builder->CreateCondBr(l.convertToTruthy(v.getValue()), bodyB, endB);
@@ -501,7 +503,7 @@ void CodeGenVisitor::visit(ReturnStmt* st) {
 
   terminate = true;
 
-  CodeGenExprVisitor v(scope, l);
+  CodeGenVisitor v(scope, l);
   if (st->expr) {
     v.visit(st->expr);
     auto val = l.implictConvert(v.getValue(), t.llvmFun->getReturnType());
@@ -509,4 +511,202 @@ void CodeGenVisitor::visit(ReturnStmt* st) {
   } else {
     l.builder->CreateRetVoid();
   }
+}
+
+void GraphGenVisitor::output() const {
+  const std::string fileName = "output.dot";
+  const std::string pngName = "output.png";
+
+  {
+    auto fileContent = "graph {\n" + content + "\n}";
+    std::ofstream out(fileName);
+    out << fileContent;
+    out.close();
+  }
+
+  std::cerr << "Dot file genereated: " << fileName << "\n";
+
+  const std::string cmd = "dot " + fileName + " -Tpng > " + pngName;
+  if (system(cmd.c_str())) {
+    std::cerr << "Failed to exec `" << cmd << "`\n";
+  } else
+    std::cerr << "AST graph generated: " << pngName << "\n";
+}
+
+int GraphGenVisitor::addNode(std::string desc) {
+  int id = nodeNum++;
+  auto name = getTagName(id);
+  content += "\t" + name + "[label=\"" + desc + "\"];\n";
+  return id;
+}
+
+std::string GraphGenVisitor::getTagName(int id) const {
+  std::stringstream ss;
+  ss << "n" << id;
+  return ss.str();
+}
+
+void GraphGenVisitor::addTo(int x, int y) {
+  content += "\t" + getTagName(x) + " -- " + getTagName(y) + ";\n";
+}
+
+void GraphGenVisitor::visitProgram(const Program& prog) {
+  int root = addNode("block");
+  for (auto d : prog) {
+    visit(d);
+    addTo(rootNode, root);
+  }
+  rootNode = root;
+}
+
+void GraphGenVisitor::visit(Declaration* expr) { expr->accept(this); }
+
+void GraphGenVisitor::visit(ExprStmt* expr) { visit(expr->getExpr()); }
+
+void GraphGenVisitor::visit(VarDecl* d) {
+  int node = addNode("declare " + d->name());
+  auto init = d->getInit();
+  if (init) {
+    visit(init);
+    addTo(rootNode, node);
+  }
+  rootNode = node;
+}
+
+void GraphGenVisitor::visit(FunDecl* d) {
+  std::string desc = "function " + d->name();
+  if (d->getArgs().size()) desc += " with argument ";
+  for (auto a : d->getArgs()) {
+    desc += " " + a.id.lexeme;
+  }
+
+  int node = addNode(desc);
+
+  if (d->getBody()) {
+    visit(d->getBody());
+    addTo(rootNode, node);
+  }
+
+  rootNode = node;
+}
+
+void GraphGenVisitor::visit(BlockStmt* d) { visitProgram(d->getProgram()); }
+
+void GraphGenVisitor::visit(IfStmt* d) {
+  int node = addNode("if");
+
+  visit(d->getCondition());
+  addTo(rootNode, node);
+
+  visit(d->getTrue());
+  addTo(rootNode, node);
+
+  if (d->getFalse()) {
+    visit(d->getFalse());
+    addTo(rootNode, node);
+  }
+
+  rootNode = node;
+}
+
+void GraphGenVisitor::visit(WhileStmt* d) {
+  int node = addNode("while");
+  visit(d->getCondition());
+  addTo(rootNode, node);
+  visit(d->getBody());
+  addTo(rootNode, node);
+  rootNode = node;
+}
+
+void GraphGenVisitor::visit(BreakStmt* d) { rootNode = addNode("break"); }
+
+void GraphGenVisitor::visit(ReturnStmt* d) {
+  int node = addNode("return");
+  if (d->getExpr()) {
+    visit(d->getExpr());
+    addTo(rootNode, node);
+  }
+  rootNode = node;
+}
+
+void GraphGenVisitor::visit(Expr* expr) { expr->accept(this); }
+
+void GraphGenVisitor::visit(Literal* expr) { expr->accept(this); }
+
+void GraphGenVisitor::visit(Integer* expr) {
+  rootNode = addNode(std::string(*expr));
+}
+
+void GraphGenVisitor::visit(Boolean* expr) {
+  rootNode = addNode(std::string(*expr));
+}
+
+void GraphGenVisitor::visit(Double* expr) {
+  rootNode = addNode(std::string(*expr));
+}
+
+void GraphGenVisitor::visit(String* expr) {
+  rootNode = addNode(std::string(*expr));
+}
+
+void GraphGenVisitor::visit(Char* expr) {
+  rootNode = addNode(std::string(*expr));
+}
+
+void GraphGenVisitor::visit(Binary* expr) {
+  int root = addNode(expr->getOp().lexeme);
+
+  visit(expr->getLeft());
+  int l = rootNode;
+
+  visit(expr->getRight());
+  int r = rootNode;
+
+  addTo(l, root);
+  addTo(r, root);
+
+  rootNode = root;
+}
+
+void GraphGenVisitor::visit(Unary* expr) {
+  int node = addNode(expr->getOp().lexeme);
+  visit(expr->getChild());
+  addTo(rootNode, node);
+  rootNode = node;
+}
+void GraphGenVisitor::visit(Postfix* expr) {
+  int node = addNode(expr->getOp().lexeme);
+  visit(expr->getChild());
+  addTo(rootNode, node);
+  rootNode = node;
+}
+void GraphGenVisitor::visit(Variable* expr) {
+  rootNode = addNode(expr->getName());
+}
+void GraphGenVisitor::visit(Call* expr) {
+  int node = addNode("call function");
+  visit(expr->getCallee());
+  int callee = rootNode;
+  addTo(callee, node);
+  for (auto a : expr->getArgs()) {
+    visit(a);
+    int arg = rootNode;
+    addTo(arg, callee);
+  }
+  rootNode = node;
+}
+void GraphGenVisitor::visit(Index* expr) {
+  int node = addNode("[]");
+
+  visit(expr->getBase());
+  int base = rootNode;
+  addTo(base, node);
+
+  for (auto i : expr->getIdxs()) {
+    visit(i);
+    int idx = rootNode;
+    addTo(idx, base);
+  }
+
+  rootNode = node;
 }

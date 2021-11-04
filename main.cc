@@ -27,6 +27,10 @@ int run(const string& s) {
   }
   if (options->printIR()) l.mod->print(llvm::outs(), nullptr);
   compile(v);
+
+  GraphGenVisitor gv;
+  gv.visitProgram(stmts);
+  gv.output();
   return 0;
 }
 
