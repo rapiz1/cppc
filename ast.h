@@ -28,6 +28,7 @@ class ExprStmt : public Statement {
  public:
   ExprStmt(Expr* expr) : expr(expr){};
   operator std::string() override { return std::string(*expr); };
+  Expr* getExpr() const { return expr; }
 
   void accept(DeclVisitor* v) override { v->visit(this); }
   friend class PrintVisitor;
@@ -72,6 +73,7 @@ class BlockStmt : public Statement {
     for (auto d : decls) content += std::string(*d);
     return "{ " + content + " }";
   }
+  Program getProgram() const { return decls; }
 
   void accept(DeclVisitor* v) override { v->visit(this); }
   friend class PrintVisitor;
@@ -89,6 +91,9 @@ class IfStmt : public Statement {
         true_branch(true_branch),
         false_branch(false_branch){};
 
+  Expr* getCondition() const { return condition; };
+  Statement* getTrue() const { return true_branch; };
+  Statement* getFalse() const { return false_branch; };
   operator std::string() override { return "ifstmt"; };
 
   void accept(DeclVisitor* v) override { v->visit(this); }
@@ -104,6 +109,8 @@ class WhileStmt : public Statement {
  public:
   WhileStmt(Expr* condition, Statement* body)
       : condition(condition), body(body){};
+  Expr* getCondition() const { return condition; };
+  Statement* getBody() const { return body; };
   operator std::string() override { return "whilestmt"; };
 
   void accept(DeclVisitor* v) override { v->visit(this); }
@@ -125,6 +132,7 @@ class ReturnStmt : public Statement {
 
  public:
   ReturnStmt(Expr* expr) : expr(expr){};
+  Expr* getExpr() const { return expr; };
 
   operator std::string() override { return "return" + std::string(*expr); };
 
@@ -142,6 +150,9 @@ class VarDecl : public Declaration {
  public:
   VarDecl(Type type, std::string id, Expr* init)
       : type(type), identifier(id), init(init){};
+  Type getType() const { return type; };
+  std::string name() const { return identifier; };
+  Expr* getInit() const { return init; };
   operator std::string() override {
     return "var " + identifier + " = " + std::string(*init);
   };
@@ -181,6 +192,8 @@ class Call : public Expr {
 
  public:
   Call(Expr* callee, RealArgs args) : callee(callee), args(args){};
+  Expr* getCallee() const { return callee; }
+  RealArgs getArgs() const { return args; };
   operator std::string() override { return "call " + std::string(*callee); };
   bool isLval() const override { return false; }
 
@@ -194,6 +207,8 @@ class Index : public Expr {
 
  public:
   Index(Expr* base, std::vector<Expr*> idxs) : base(base), idxs(idxs){};
+  Expr* getBase() const { return base; };
+  std::vector<Expr*> getIdxs() const { return idxs; };
   operator std::string() override { return "index " + std::string(*base); };
   bool isLval() const override { return true; }
 
@@ -210,6 +225,9 @@ class Binary : public Expr {
  public:
   Binary(Expr* left, Token op, Expr* right)
       : left(left), op(op), right(right){};
+  Token getOp() const { return op; };
+  Expr* getLeft() const { return left; };
+  Expr* getRight() const { return right; };
   operator std::string() override;
   bool isLval() const override { return false; }
 
@@ -224,6 +242,8 @@ class Unary : public Expr {
 
  public:
   Unary(Token op, Expr* child) : op(op), child(child){};
+  Token getOp() const { return op; };
+  Expr* getChild() const { return child; };
   operator std::string() override;
   bool isLval() const override { return false; }
 
@@ -238,6 +258,8 @@ class Postfix : public Expr {
 
  public:
   Postfix(Token op, Expr* child) : op(op), child(child){};
+  Token getOp() const { return op; };
+  Expr* getChild() const { return child; };
   operator std::string() override { return "postfix " + op.lexeme; };
   bool isLval() const override { return false; }
 
@@ -257,6 +279,7 @@ class Integer : public Literal {
  public:
   Integer(Token token);
   Integer(int value) : value(value){};
+  int getValue() const { return value; };
   operator std::string() override;
 
   void accept(ExprVisitor* v) override { v->visit(this); }
@@ -270,6 +293,7 @@ class Double : public Literal {
  public:
   Double(Token token);
   Double(double value) : value(value){};
+  double getValue() const { return value; }
   operator std::string() override;
 
   void accept(ExprVisitor* v) override { v->visit(this); }
@@ -283,6 +307,7 @@ class String : public Literal {
  public:
   String(Token token) { value = token.lexeme; }
   String(std::string value) : value(value){};
+  std::string getValue() const { return value; };
   operator std::string() override;
 
   void accept(ExprVisitor* v) override { v->visit(this); }
@@ -297,6 +322,7 @@ class Char : public Literal {
  public:
   Char(Token token);
   Char(char value) : value(value){};
+  char getValue() const { return value; };
   operator std::string() override;
 
   void accept(ExprVisitor* v) override { v->visit(this); }
@@ -310,6 +336,7 @@ class Boolean : public Literal {
  public:
   Boolean(bool value) : value(value){};
   Boolean(Token token) { value = token.tokenType == TRUE; }
+  bool getValue() const { return value; }
   operator std::string() override;
 
   void accept(ExprVisitor* v) override { v->visit(this); }
@@ -322,6 +349,7 @@ class Function : public Literal {
 
  public:
   Function(FunDecl* fun) : fun(fun){};
+  FunDecl* getFun() const { return fun; };
   operator std::string() override { return std::string(*fun); };
 
   void accept(ExprVisitor* v) override { v->visit(this); }
@@ -336,6 +364,7 @@ class Variable : public Expr {
   Variable(std::string name) : name(name){};
   Variable(Token token) { name = token.lexeme; };
   bool isLval() const override { return true; }
+  std::string getName() const { return name; };
 
   operator std::string() override { return name; };
 
