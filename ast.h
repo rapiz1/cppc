@@ -79,12 +79,14 @@ class WhileStmt : public Statement {
  protected:
   Expr* condition;
   Statement* body;
+  Statement* update;
 
  public:
-  WhileStmt(Expr* condition, Statement* body)
-      : condition(condition), body(body){};
+  WhileStmt(Expr* condition, Statement* body, Statement* update = nullptr)
+      : condition(condition), body(body), update(update){};
   Expr* getCondition() const { return condition; };
   Statement* getBody() const { return body; };
+  Statement* getUpdate() const { return update; };
   operator std::string() override { return "whilestmt"; };
 
   void accept(AstVisitor* v) override { v->visit(this); }
@@ -109,7 +111,6 @@ class ContStmt : public Statement {
   friend class PrintVisitor;
   friend class CodeGenVisitor;
 };
-
 
 class ReturnStmt : public Statement {
   Expr* expr;

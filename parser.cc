@@ -215,20 +215,15 @@ BlockStmt* Parser::forStmt() {
   /*
   { // outer
     init;
-    while (condition)
-    { // inner
+    while (condition), with update exprStmt inc
       b;
-      inc;
-    }
   }
   */
 
-  Program outer, inner;
-  inner.push_back(b);
-  inner.push_back(new ExprStmt(inc));
+  Program outer;
 
   outer.push_back(init);
-  outer.push_back(new WhileStmt(condition, new BlockStmt(inner)));
+  outer.push_back(new WhileStmt(condition, b, new ExprStmt(inc)));
 
   f = new BlockStmt(outer);
   return f;

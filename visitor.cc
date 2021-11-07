@@ -476,6 +476,7 @@ void CodeGenVisitor::visit(WhileStmt* st) {
   auto f = l.builder->GetInsertBlock()->getParent();
   auto beginB = llvm::BasicBlock::Create(*l.ctx, "loopBegin", f);
   auto bodyB = llvm::BasicBlock::Create(*l.ctx, "loopBody");
+  auto contB = llvm::BasicBlock::Create(*l.ctx, "loopCont");
   auto endB = llvm::BasicBlock::Create(*l.ctx, "loopEnd");
 
   l.builder->CreateBr(beginB);
@@ -489,12 +490,18 @@ void CodeGenVisitor::visit(WhileStmt* st) {
   // emit the body
   auto t = scope.getTrace();
   t.endB = endB;
-  t.contB = beginB;
+  t.contB = contB;
   auto v1 = wrapWithTrace(&t);
   f->getBasicBlockList().push_back(bodyB);
   l.builder->SetInsertPoint(bodyB);
   v1.visit(st->body);
-  if (!v1.terminate) l.builder->CreateBr(beginB);
+  if (!v1.terminate) l.builder->CreateBr(contB);
+
+  // set inserter to contB
+  l.builder->SetInsertPoint(contB);
+  f->getBasicBlockList().push_back(contB);
+  if (st->update) v1.visit(st->update);
+  l.builder->CreateBr(beginB);
 
   // set inserter to endB
   l.builder->SetInsertPoint(endB);
