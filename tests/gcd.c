@@ -4,10 +4,4 @@ int gcd(int a, int b) {
   return gcd(b, a);
 }
 
-int main() {
-  
-  
-  
-  
-}
-
+int main() {}
