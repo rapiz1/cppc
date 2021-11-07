@@ -1,3 +1,10 @@
-function lessthan(int a, int b) -> bool {
+int putchar(int a);
+bool lessthan(int a, int b) {
   return a < b;
+}
+int main() {
+  int a = 1;
+  int b = 3;
+  if (lessthan(a, b)) putchar('y');
+  else putchar('n');
 }
