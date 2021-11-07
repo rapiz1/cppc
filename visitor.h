@@ -27,6 +27,7 @@ class IfStmt;
 class ForStmt;
 class WhileStmt;
 class BreakStmt;
+class ContStmt;
 class ReturnStmt;
 
 typedef std::vector<Declaration*> Program;
@@ -55,6 +56,7 @@ class AstVisitor {
   virtual void visit(IfStmt* d) = 0;
   virtual void visit(WhileStmt* d) = 0;
   virtual void visit(BreakStmt* d) = 0;
+  virtual void visit(ContStmt* d) = 0;
   virtual void visit(ReturnStmt* d) = 0;
 };
 
@@ -89,6 +91,7 @@ class CodeGenVisitor : public AstVisitor {
   void visit(IfStmt* d) override;
   void visit(WhileStmt* d) override;
   void visit(BreakStmt* d) override;
+  void visit(ContStmt* d) override;
   void visit(ReturnStmt* d) override;
 
   void visit(Expr* expr) override;
@@ -140,6 +143,7 @@ class GraphGenVisitor : public AstVisitor {
   void visit(IfStmt* d) override;
   void visit(WhileStmt* d) override;
   void visit(BreakStmt* d) override;
+  void visit(ContStmt* d) override;
   void visit(ReturnStmt* d) override;
 
   void visit(Expr* expr) override;

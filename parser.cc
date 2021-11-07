@@ -112,6 +112,11 @@ Statement* Parser::stmt() {
       advance();
       consume(SEMICOLON, "Expect `;` after break");
       break;
+    case CONTINUE:
+      s = new ContStmt();
+      advance();
+      consume(SEMICOLON, "Expect `;` after continue");
+      break;
     case RETURN:
       s = returnStmt();
       break;

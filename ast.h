@@ -101,6 +101,16 @@ class BreakStmt : public Statement {
   friend class CodeGenVisitor;
 };
 
+class ContStmt : public Statement {
+ public:
+  operator std::string() override { return "continue"; };
+
+  void accept(AstVisitor* v) override { v->visit(this); }
+  friend class PrintVisitor;
+  friend class CodeGenVisitor;
+};
+
+
 class ReturnStmt : public Statement {
   Expr* expr;
 

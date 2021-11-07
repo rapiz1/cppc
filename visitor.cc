@@ -498,6 +498,17 @@ void CodeGenVisitor::visit(BreakStmt* st) {
   if (!endB) abortMsg("break in non-loop");
   l.builder->CreateBr(endB);
 }
+
+void CodeGenVisitor::visit(ContStmt* st) {
+  auto t = scope.getTrace();
+  auto contB = t.contB;
+
+  terminate = true;
+
+  if (!contB) abortMsg("continue in non-loop");
+  l.builder->CreateBr(contB);
+}
+
 void CodeGenVisitor::visit(ReturnStmt* st) {
   auto t = scope.getTrace();
 
@@ -619,6 +630,8 @@ void GraphGenVisitor::visit(WhileStmt* d) {
 }
 
 void GraphGenVisitor::visit(BreakStmt* d) { rootNode = addNode("break"); }
+
+void GraphGenVisitor::visit(ContStmt* d) { rootNode = addNode("continue"); }
 
 void GraphGenVisitor::visit(ReturnStmt* d) {
   int node = addNode("return");

@@ -59,6 +59,7 @@ enum TokenType {
   PRINT,
   RETURN,
   BREAK,
+  CONTINUE,
   SUPER,
   THIS,
   TRUE,
