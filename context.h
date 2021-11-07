@@ -8,19 +8,21 @@
 #include "type.h"
 
 class FunDecl;
+class Literal;
+
 struct Record {
   std::string id;
   Type type;
   llvm::AllocaInst* addr;
 };
 
-class Literal;
 struct Trace {
   llvm::Function* llvmFun;
   FunDecl* fun;
   llvm::BasicBlock* contB;
   llvm::BasicBlock* endB;
 };
+
 class Scope {
   Scope* parent;
   typedef std::map<std::string, Record> VarRec;

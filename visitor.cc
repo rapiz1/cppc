@@ -12,6 +12,7 @@
 CodeGenVisitor CodeGenVisitor::wrap() {
   return CodeGenVisitor(scope.wrap(), l);
 }
+
 CodeGenVisitor CodeGenVisitor::wrapWithTrace(Trace* r) {
   return CodeGenVisitor(scope.wrapWithTrace(r), l);
 }
@@ -27,9 +28,11 @@ void CodeGenVisitor::visit(Integer* expr) {
 void CodeGenVisitor::visit(Double* expr) {
   setValue(llvm::ConstantFP::get(*l.ctx, llvm::APFloat(expr->value)));
 }
+
 void CodeGenVisitor::visit(Boolean* expr) {
   setValue(llvm::ConstantInt::get(*l.ctx, llvm::APInt(1, expr->value)));
 }
+
 void CodeGenVisitor::visit(Char* expr) {
   setValue(llvm::ConstantInt::get(*l.ctx, llvm::APInt(8, expr->value)));
 }
@@ -225,6 +228,7 @@ void CodeGenVisitor::visit(Postfix* expr) {
   }
   l.builder->CreateStore(ret, addr);
 }
+
 void CodeGenVisitor::visit(String* expr) {
   auto s = expr->value;
   int size = s.size() + 1;
@@ -240,6 +244,7 @@ void CodeGenVisitor::visit(String* expr) {
         llvm::Constant::getIntegerValue(l.getChar(), llvm::APInt(8, c)), ptr);
   }
 }
+
 void CodeGenVisitor::visit(Variable* expr) {
   auto r = scope.get(expr->name);
   if (r.type.isArray) {
@@ -251,6 +256,7 @@ void CodeGenVisitor::visit(Variable* expr) {
   }
   type = r.type;
 }
+
 void CodeGenVisitor::visit(Index* expr) {
   CodeGenVisitor ev(scope, l);
   ev.visit(expr->base);
@@ -309,10 +315,12 @@ void CodeGenVisitor::visit(Call* expr) {
 }
 
 void CodeGenVisitor::visit(Declaration* d) { d->accept(this); }
+
 void CodeGenVisitor::visit(ExprStmt* st) {
   CodeGenVisitor v(scope, l);
   v.visit(st->expr);
 }
+
 void CodeGenVisitor::visit(VarDecl* st) {
   auto type = l.getType(st->type);
 
@@ -408,6 +416,7 @@ void CodeGenVisitor::visit(FunDecl* st) {
     ;  // abortMsg("verify error");
   // F->eraseFromParent();
 }
+
 void CodeGenVisitor::visit(BlockStmt* st) {
   auto v = wrap();
   for (auto d : st->decls) {
@@ -418,6 +427,7 @@ void CodeGenVisitor::visit(BlockStmt* st) {
     }
   }
 }
+
 void CodeGenVisitor::visit(IfStmt* st) {
   CodeGenVisitor v(scope, l);
   v.visit(st->condition);
@@ -461,6 +471,7 @@ void CodeGenVisitor::visit(IfStmt* st) {
   fun->getBasicBlockList().push_back(mergeBB);
   l.builder->SetInsertPoint(mergeBB);
 }
+
 void CodeGenVisitor::visit(WhileStmt* st) {
   auto f = l.builder->GetInsertBlock()->getParent();
   auto beginB = llvm::BasicBlock::Create(*l.ctx, "loopBegin", f);
@@ -489,6 +500,7 @@ void CodeGenVisitor::visit(WhileStmt* st) {
   l.builder->SetInsertPoint(endB);
   f->getBasicBlockList().push_back(endB);
 }
+
 void CodeGenVisitor::visit(BreakStmt* st) {
   auto t = scope.getTrace();
   auto endB = t.endB;
@@ -687,15 +699,18 @@ void GraphGenVisitor::visit(Unary* expr) {
   addTo(rootNode, node);
   rootNode = node;
 }
+
 void GraphGenVisitor::visit(Postfix* expr) {
   int node = addNode(expr->getOp().lexeme);
   visit(expr->getChild());
   addTo(rootNode, node);
   rootNode = node;
 }
+
 void GraphGenVisitor::visit(Variable* expr) {
   rootNode = addNode(expr->getName());
 }
+
 void GraphGenVisitor::visit(Call* expr) {
   int node = addNode("call function");
   visit(expr->getCallee());
@@ -708,6 +723,7 @@ void GraphGenVisitor::visit(Call* expr) {
   }
   rootNode = node;
 }
+
 void GraphGenVisitor::visit(Index* expr) {
   int node = addNode("[]");
 
