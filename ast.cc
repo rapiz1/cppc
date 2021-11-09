@@ -28,7 +28,7 @@ Double::operator std::string() {
   return ss.str();
 }
 
-String::operator std::string() { return "\"" + value + "\""; }
+String::operator std::string() { return value; }
 
 Char::operator std::string() {
   string s;
