@@ -1,44 +1,46 @@
-# clox
+# cppc
 
-Lox(well, not really) Interpreter in C++ (under development)
+C compiler in C++
 
 ## Background
 This is a learning project for [Crafting interpreters](https://craftinginterpreters.com/).
 
-I'm not actully implementing the authentic Lox. I adopted it according to my likes.
 
-Lox is a language that is very similar to C, but with dynamic types. Let's see an example.
+Most part of C is supported. Support for pointer is hacky.
+
+For which part is supported, see test code under `tests/`.
+
+## Dependencies
+
+Graphviz binary and llvm must be installed. llvm headers are required.
+Linker commands are dependent on platform and distribution. See the link function in `object.cc`.
+
+## Usage
+
+### Compile
 
 ```
-// calculate the greatest common divisor
-function gcd(a, b) {
-  if (b == 0) return a;
-  while (a >= b) a = a - b;
-  return gcd(b, a);
-}
-
-print gcd(99, 121);
-assert gcd(99, 121) == 11;
+make
 ```
 
-## Roadmap
+### Test
 
-- [x] basic lexer
-- [x] basic parser
-- [x] ``+,-,*,/,=,==,!=,<,>,<=,>=,(,)``
-- [ ] ``+=, -=, *=, /=``
-- [x] support ++, --. but no `----a` bullshit! theses ops return rvalue
-- [x] print statement
-- [x] expr statement
-- [x] var declartion
-- [x] block scoping
-- [x] for, while block
-- [x] branch
-- [x] assert statement
-- [x] **testing the language with itself (built-in assert)!** see `./tests`
-- [ ] no continue! i'm lazy
-- [x] break
-- [x] function
-- [x] return (can run gcd now!)
-- [ ] error recover
-- [ ] no local function or closure! i don't like it
+```
+make test
+```
+
+### Run
+
+```
+./clox SOURCE
+```
+And then `./a.out`, `./output.o`, `./output.dot` and `./output.png` is genereated.
+
+
+`./a.out` is the executable file.
+
+`./output.o` is the object file.
+
+`./output.dot` is the dot description of the AST.
+
+`./output.png` is the graph generated according to `./output.dot`
