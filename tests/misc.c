@@ -3,11 +3,11 @@ void printInt(int x) {
   int a[10];
   int sz = 0;
   while (x) {
-    a[sz] = x%10;
+    a[sz] = x % 10;
     sz++;
-    x = x/10;
+    x = x / 10;
   }
-  for (int i = sz-1; i >= 0; i--) {
+  for (int i = sz - 1; i >= 0; i--) {
     putchar(a[i] + '0');
   }
   return;
@@ -19,30 +19,20 @@ int gcd(int a, int b) {
   return gcd(b, a);
 }
 
-int max(int a, int b) {
-  if (a < b) {
-    return b; 
-  } else {
-    return a;
-  }
-  return a;
-}
-
 void showGcd() {
   for (int i = 90; i < 100; i++)
-  for (int j = 90; j < 100; j++) {
-    printInt(i);
-    putchar(' ');
-    printInt(j);
-    putchar(' ');
-    printInt(max(i, j));
-    putchar('\n');
-  }
+    for (int j = 90; j < 100; j++) {
+      printInt(i);
+      putchar(' ');
+      printInt(j);
+      putchar(' ');
+      printInt(gcd(i, j));
+      putchar('\n');
+    }
   return;
 }
 
 int main() {
-  int a = 4;
-  printInt(a);
+  showGcd();
   return 0;
 }
