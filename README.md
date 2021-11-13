@@ -44,3 +44,14 @@ And then `./a.out`, `./output.o`, `./output.dot` and `./output.png` is genereate
 `./output.dot` is the dot description of the AST.
 
 `./output.png` is the graph generated according to `./output.dot`
+
+## Leftover
+
+Generally speaking, type system is a whole mess. Basic types (int, double, char, bool) works, and arrays should work in most case.
+
+Other things are like:
+
+- Pointer is not supported.
+- Pointer arguments are supported but in a hacky way.
+- Array is partly supported.
+- Struct and unions are not supported.
