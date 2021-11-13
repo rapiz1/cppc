@@ -34,7 +34,7 @@ make test
 ```
 ./clox SOURCE
 ```
-And then `./a.out`, `./output.o`, `./output.dot` and `./output.png` is genereated.
+And then `./a.out`, `./output.o`, `./output.dot` and `./output.png` are genereated.
 
 
 `./a.out` is the executable file.
@@ -47,7 +47,7 @@ And then `./a.out`, `./output.o`, `./output.dot` and `./output.png` is genereate
 
 ## Leftover
 
-Generally speaking, type system is a whole mess. Basic types (int, double, char, bool) works, and arrays should work in most case.
+Generally speaking, the type system is a whole mess. Basic types (int, double, char, bool) works, and arrays should work in most case.
 
 Other things are like:
 
