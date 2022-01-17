@@ -6,7 +6,7 @@ C compiler in C++
 This is a learning project for [Crafting interpreters](https://craftinginterpreters.com/).
 
 
-Most part of C is supported. Support for pointer is hacky.
+Most part of C is supported. Support for pointer is hacky. See `tests/` for the supported part.
 
 For which part is supported, see test code under `tests/`.
 
